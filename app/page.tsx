@@ -107,7 +107,7 @@ export default function Page() {
               numberOfMonths={2}
               disabled={disabledMatchers}
               fromDate={new Date()}           // 오늘 이전 선택 방지(원하면 제거)
-              captionLayout="buttons"
+              captionLayout="dropdown"
               weekStartsOn={1}
             />
             <div style={{ marginTop: 8, fontSize: 13, color: "rgba(238, 101, 9, 1)" }}>
