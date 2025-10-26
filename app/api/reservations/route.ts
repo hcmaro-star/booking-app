@@ -1,37 +1,65 @@
+export const runtime = "nodejs"; // ioredis는 Edge 런타임에서 동작하지 않음
 import { NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
+import redis from "@/lib/redis";
 
-// Vercel 환경변수에 자동 추가된 Redis URL과 TOKEN 사용
-const redis = new Redis({
-  url: process.env.KV_REDIS_URL!,
-  token: process.env.KV_REDIS_TOKEN!,
-});
+const KEY = "reservations";
 
-// ✅ GET: 예약 리스트 불러오기
+// 전화번호 마스킹 (예: 01012345678 -> 010****5678)
+function maskPhone(phone: string) {
+  const only = String(phone ?? "").replace(/\D/g, "");
+  return only.replace(/(\d{3})\d{4}(\d+)/, "$1****$2");
+}
+
+// 예약 목록 조회
 export async function GET() {
   try {
-    const data = (await redis.lrange("reservations", 0, -1)) || [];
-    const reservations = data.map((item) => JSON.parse(item));
-    return NextResponse.json(reservations);
-  } catch (error) {
-    console.error("GET Error:", error);
-    return NextResponse.json({ error: "데이터를 불러오지 못했습니다." }, { status: 500 });
+    const items = await redis.lrange(KEY, 0, -1); // 최신이 앞쪽
+    const list = items
+      .map((s) => {
+        try { return JSON.parse(s); } catch { return null;}
+      })
+      .filter(Boolean)
+      .map((r: any) => ({
+        ...r,
+        phone: maskPhone(r.phone),
+      }));
+
+    return NextResponse.json(list);
+  } catch (err) {
+    console.error("GET /api/reservations error:", err);
+    return NextResponse.json({ error: "failed" }, { status: 500 });
   }
 }
 
-// ✅ POST: 새 예약 저장
+// 예약 생성
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    body.id = Date.now().toString();
-    body.createdAt = new Date().toISOString();
+    const { name, phone, guests, start, end } = body || {};
 
-    await redis.lpush("reservations", JSON.stringify(body));
+    if (!name || !phone || !start || !end) {
+      return NextResponse.json({ error: "필수 항목 누락" }, { status: 400 });
+    }
 
-    return NextResponse.json({ success: true, message: "예약이 저장되었습니다." });
-  } catch (error) {
-    console.error("POST Error:", error);
-    return NextResponse.json({ error: "예약 저장 중 오류 발생" }, { status: 500 });
+const id = Math.random().toString(36).slice(2, 10);
+
+const doc = {
+  id,
+  name,
+  phone,
+  guests: Number(guests || 1),
+  start,
+  end,
+  createdAt: new Date().toISOString(),
+};
+
+await redis.lpush(KEY, JSON.stringify(doc)); 
+
+    // 프론트는 성공만 확인하면 되므로 간단히 응답
+    return NextResponse.json({ ok: true, id });
+  } catch (err) {
+    console.error("POST /api/reservations error:", err);
+    return NextResponse.json({ error: "failed" }, { status: 500 });
   }
 }
 
