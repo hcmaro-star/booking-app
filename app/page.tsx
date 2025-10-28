@@ -39,13 +39,48 @@ export default function Page() {
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function refresh() {
-    setLoading(true);
-    const r = await fetch("/api/reservations");
+async function refresh() {
+  setLoading(true);
+  setError(null);
+  try {
+    // 캐시를 쓰지 않고 항상 새로 가져오도록
+    const r = await fetch("/api/reservations", { cache: "no-store" });
+    if (!r.ok) {
+      throw new Error(`API error: ${r.status}`);
+    }
+
+    const contentType = r.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      throw new Error("Invalid content-type");
+    }
+
     const data = await r.json();
-    setList(data);
+
+    // 응답 형식 방어적으로 정규화
+    const safe: Reservation[] = Array.isArray(data)
+      ? data
+          .map((x: any) => ({
+            id: String(x?.id ?? ""),
+            name: String(x?.name ?? ""),
+            phone: String(x?.phone ?? ""),
+            guests: Number(x?.guests ?? 0),
+            start: String(x?.start ?? ""),
+            end: String(x?.end ?? ""),
+            createdAt: String(x?.createdAt ?? ""),
+          }))
+          .filter((x) => x.id) // id 없는 항목 제거
+      : [];
+
+    setList(safe);
+  } catch (e) {
+    console.error("fetch reservations failed:", e);
+    setList([]);
+    setError("예약 목록을 불러오지 못했습니다.");
+  } finally {
     setLoading(false);
   }
+}
+
   useEffect(() => { refresh(); }, []);
 
   // 이미 예약된 구간을 달력에서 비활성화(선택 불가)
