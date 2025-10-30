@@ -1,11 +1,16 @@
-// lib/redis.ts
+// src/lib/redis.ts
 import Redis from "ioredis";
 
-if (!process.env.REDIS_URL) {
-  throw new Error("REDIS_URL is not set. Check your .env.local or Vercel env.");
+const url = process.env.REDIS_URL;
+if (!url) {
+  throw new Error("REDIS_URL is not set");
 }
 
-// ioredis 는 rediss:// 를 쓰면 TLS 자동 적용됩니다.
-export const redis = new Redis(process.env.REDIS_URL);
-
-export default redis;
+export const redis = new Redis(url, {
+  // rediss:// 이면 TLS 강제
+  tls: url.startsWith("rediss://") ? {} : undefined,
+  // 운영에서 너무 오래 기다리지 않도록
+  maxRetriesPerRequest: 2,
+  enableReadyCheck: true,
+  lazyConnect: false,
+});
