@@ -1,14 +1,15 @@
-// src/app/api/health/route.ts
-export const runtime = "nodejs";
 import { NextResponse } from "next/server";
-import { redis } from "@/lib/redis";
+import { redis } from "@/src/lib/redis";
 
 export async function GET() {
   try {
-    const pong = await redis.ping();
-    return NextResponse.json({ ok: true, pong });
+    // Redis 테스트 요청
+    await redis.ping();
+    return NextResponse.json({ ok: true, pong: "PONG" });
   } catch (e: any) {
-    console.error("[HEALTH]", e?.message, e?.code);
-    return NextResponse.json({ ok: false, error: e?.message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: e.message },
+      { status: 500 }
+    );
   }
 }
