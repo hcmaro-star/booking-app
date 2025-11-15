@@ -9,8 +9,9 @@ const KEY = "reservations";
 // GET: 모든 예약 조회
 export async function GET() {
   try {
-    const raw = await redis.get(KEY);
-    const list = raw ? JSON.parse(raw as string) : [];
+    const raw = (await redis.get(KEY)) as string | null;
+    const list = raw ? JSON.parse(raw) : [];
+  
     return NextResponse.json(list);
   } catch (e: any) {
     console.error("[GET_RESERVATIONS]", e);
@@ -32,9 +33,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 기존 목록 불러오기
-    const raw = await redis.get(KEY);
-    const list = raw ? JSON.parse(raw as string) : [];
-
+    const raw = (await redis.get(KEY)) as string | null;
+    const list = raw ? JSON.parse(raw) : [];
     // 신규 예약 문서 구성
     const doc = {
       id: Math.random().toString(36).slice(2, 10),
