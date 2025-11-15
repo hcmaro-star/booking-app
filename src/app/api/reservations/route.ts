@@ -1,57 +1,61 @@
 // src/app/api/reservations/route.ts
+export const runtime = "nodejs";
 
-export const runtime = "nodejs";  // 반드시 추가!
-
-import { NextResponse } from "next/server";
-import Redis from "ioredis";
-
-const redis = new Redis(process.env.REDIS_URL as string);
+import { NextRequest, NextResponse } from "next/server";
+import { redis } from "@/lib/redis";
 
 const KEY = "reservations";
 
-// GET: 예약 목록 조회
+// GET: 모든 예약 조회
 export async function GET() {
   try {
-    const items = await redis.lrange(KEY, 0, -1);
-    const list = items
-      .map((s) => {
-        try {
-          return JSON.parse(s);
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean);
+    const raw = await redis.get(KEY);
+    const list = raw ? JSON.parse(raw as string) : [];
     return NextResponse.json(list);
-  } catch (err) {
-    console.error("GET /api/reservations error:", err);
-    return NextResponse.json({ error: "failed" }, { status: 500 });
+  } catch (e: any) {
+    console.error("[GET_RESERVATIONS]", e);
+    return NextResponse.json(
+      { error: "failed", detail: e?.message },
+      { status: 500 }
+    );
   }
 }
 
-// POST: 새 예약 저장
-export async function POST(req: Request) {
+// POST: 예약 생성
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, phone, guests, start, end } = body;
+    const { name, phone, guests, start, end } = body || {};
 
     if (!name || !phone || !start || !end) {
-      return NextResponse.json(
-        { error: "필수 항목 누락" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "bad_request" }, { status: 400 });
     }
 
-    const createdAt = new Date().toISOString();
-    const id = Math.random().toString(36).slice(2, 10);
+    // 기존 목록 불러오기
+    const raw = await redis.get(KEY);
+    const list = raw ? JSON.parse(raw as string) : [];
 
-    const doc = { id, name, phone, guests, start, end, createdAt };
+    // 신규 예약 문서 구성
+    const doc = {
+      id: Math.random().toString(36).slice(2, 10),
+      name,
+      phone,
+      guests: Number(guests) || 1,
+      start,
+      end,
+      createdAt: new Date().toISOString(),
+    };
 
-    await redis.rpush(KEY, JSON.stringify(doc));
+    // 목록에 추가 후 저장
+    list.push(doc);
+    await redis.set(KEY, JSON.stringify(list));
 
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("POST /api/reservations error:", err);
-    return NextResponse.json({ error: "failed" }, { status: 500 });
+    return NextResponse.json({ ok: true, id: doc.id });
+  } catch (e: any) {
+    console.error("[POST_RESERVATION]", e);
+    return NextResponse.json(
+      { error: "failed", detail: e?.message },
+      { status: 500 }
+    );
   }
 }

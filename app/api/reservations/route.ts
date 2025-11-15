@@ -16,24 +16,14 @@ function logError(tag: string, e: any) {
 
 // GET: 목록
 export async function GET(req: NextRequest) {
-  const debug = req.nextUrl.searchParams.get("debug") === "1";
   try {
-    const items = await redis.lrange(KEY, 0, -1);
-    const list = items
-      .map((s) => {
-        try {
-          return JSON.parse(s);
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean);
-
+    const raw = await redis.get(KEY);
+    const list = raw ? JSON.parse(raw as string) : [];
     return NextResponse.json(list);
   } catch (e: any) {
     logError("GET_RESERVATIONS", e);
     return NextResponse.json(
-      { error: "failed", detail: debug ? e?.message : undefined },
+      { error: "failed", detail: e?.message },
       { status: 500 }
     );
   }
@@ -41,14 +31,19 @@ export async function GET(req: NextRequest) {
 
 // POST: 생성
 export async function POST(req: NextRequest) {
-  const debug = req.nextUrl.searchParams.get("debug") === "1";
   try {
     const body = await req.json();
     const { name, phone, guests, start, end } = body || {};
+
     if (!name || !phone || !start || !end) {
       return NextResponse.json({ error: "bad_request" }, { status: 400 });
     }
 
+    // 기존 예약 목록 가져오기
+    const raw = await redis.get(KEY);
+    const list = raw ? JSON.parse(raw as string) : [];
+
+    // 새 예약 생성
     const doc = {
       id: Math.random().toString(36).slice(2, 10),
       name,
@@ -58,13 +53,15 @@ export async function POST(req: NextRequest) {
       end,
       createdAt: new Date().toISOString(),
     };
+    list
 
-    await redis.rpush(KEY, JSON.stringify(doc));
+
+    await redis.set(KEY, JSON.stringify(list));
     return NextResponse.json({ ok: true, id: doc.id });
   } catch (e: any) {
     logError("POST_RESERVATION", e);
     return NextResponse.json(
-      { error: "failed", detail: debug ? e?.message : undefined },
+      { error: "failed", detail: e?.message },
       { status: 500 }
     );
   }
