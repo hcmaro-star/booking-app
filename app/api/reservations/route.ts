@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { redis } from "@/src/lib/redis";
+import { redis } from "../../../src/lib/redis";
+
 
 const KEY = "reservations";
 

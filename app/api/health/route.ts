@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { redis } from "@/src/lib/redis";
+import { redis } from "../../../src/lib/redis";
+
 
 export async function GET() {
   try {
