@@ -8,7 +8,8 @@ export default function ReservationsPage() {
   const [guests, setGuests] = useState(1);
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
-  const [list, setList] = useState([]);
+  const [list, setList] = useState<any[]>([]);
+
 
   // 예약 목록 불러오기
   async function loadReservations() {
