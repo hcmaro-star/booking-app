@@ -2,31 +2,29 @@
 
 import { useState, useEffect } from "react";
 
+type Reservation = {
+    name: string;
+    phone: string;
+    guests: number;
+    start: string;
+    end: string;
+};
+
 export default function ReservationsPage() {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [guests, setGuests] = useState(1);
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
-  const [list, setList] = useState([]);
-  let nights = 0;
 
-if (start && end) {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    nights = Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000);
-}
-  const price =
-    nights * 85000 +
-    (guests > 1 ? (guests - 1) * 35000 * nights : 0);
+    const [list, setList] = useState<Reservation[]>([]);
 
-  async function loadReservations() {
-    try {
-      const res = await fetch("/api/reservations");
-      const data = await res.json();
-      if (Array.isArray(data)) setList(data);
-    } catch (e) {}
-  }
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const res = await fetch("/api/reservations");
+                const data = await res.json();
+                if (Array.isArray(data)) setList(data as Reservation[]);
+            } catch (e) {}
+        };
+        load();
+    }, []);
+
 
   useEffect(() => {
     loadReservations();
