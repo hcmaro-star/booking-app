@@ -1,56 +1,106 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-// 예약 데이터 타입
-type Reservation = {
-  name: string;
-  phone: string;
-  guests: number;
-  start: string;
-  end: string;
-};
+import { useState, useEffect } from "react";
 
 export default function ReservationsPage() {
-  // 예약 목록 상태
-  const [list, setList] = useState<Reservation[]>([]);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [guests, setGuests] = useState(1);
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [list, setList] = useState([]);
 
-  // 예약 목록 불러오기 함수
-  const loadReservations = async () => {
+  // 예약 목록 불러오기
+  async function loadReservations() {
     try {
-      const res = await fetch("/api/reservations", { cache: "no-store" });
+      const res = await fetch("/api/reservations");
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setList(data as Reservation[]);
-      }
-    } catch (e) {
-      console.error("불러오기 실패", e);
-    }
-  };
+      if (Array.isArray(data)) setList(data);
+    } catch (e) {}
+  }
 
-  // 페이지 로드시 예약 목록 불러오기
+  // 첫 로딩 시 예약 목록 가져옴
   useEffect(() => {
     loadReservations();
   }, []);
 
+  // 예약 제출
+  async function submit() {
+    if (!name || !phone || !start || !end) {
+      alert("모든 항목을 입력해주세요.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, guests, start, end }),
+      });
+
+      const json = await res.json();
+      if (json.ok) {
+        alert("예약 완료되었습니다!");
+        loadReservations();
+      } else {
+        alert("예약 실패: " + json.detail);
+      }
+    } catch (e) {
+      alert("서버 오류 발생");
+    }
+  }
+
   return (
-    <div style={{ padding: 20 }}>
-      <h1 style={{ fontSize: 28, fontWeight: "bold" }}>예약 현황</h1>
+    <div style={{ padding: 40 }}>
+      <h1 style={{ fontSize: 32, fontWeight: "bold" }}>예약하기</h1>
 
-      {list.length === 0 && (
-        <p style={{ marginTop: 20 }}>현재 예약이 없습니다.</p>
-      )}
+      <div style={{ marginTop: 20 }}>
+        <p>이름</p>
+        <input value={name} onChange={(e) => setName(e.target.value)} />
 
-      {list.length > 0 && (
-        <ul style={{ marginTop: 20 }}>
-          {list.map((item, i) => (
-            <li key={i} style={{ marginBottom: 15 }}>
-              <strong>{item.name}</strong> / {item.phone} / {item.guests}명 <br />
-              {item.start} → {item.end}
-            </li>
-          ))}
-        </ul>
-      )}
+        <p>전화번호</p>
+        <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+
+        <p>인원</p>
+        <input
+          type="number"
+          value={guests}
+          onChange={(e) => setGuests(Number(e.target.value))}
+          min={1}
+        />
+
+        <p>시작 날짜</p>
+        <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+
+        <p>종료 날짜</p>
+        <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+
+        <button
+          onClick={submit}
+          style={{
+            marginTop: 20,
+            padding: "10px 20px",
+            background: "black",
+            color: "white",
+            borderRadius: 8,
+            border: "none",
+          }}
+        >
+          예약하기
+        </button>
+      </div>
+
+      <h2 style={{ marginTop: 50, fontSize: 24, fontWeight: "bold" }}>예약 현황</h2>
+
+      {list.length === 0 && <p>현재 예약이 없습니다.</p>}
+
+      {list.map((r, idx) => (
+        <div key={idx} style={{ marginTop: 15 }}>
+          <p>
+            {r.name} / {r.phone} / {r.start} ~ {r.end} / {r.guests}명
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
