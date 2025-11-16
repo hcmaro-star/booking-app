@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "../../../src/lib/redis";
 
-
 const KEY = "reservations";
 
 // GET: 모든 예약 조회
@@ -35,7 +34,7 @@ export async function POST(req: NextRequest) {
     const list = raw ? JSON.parse(raw) : [];
 
     const doc = {
-      id: Math.random().toString(36).slice(2, 10),
+      id: Math.random().toString(36).slice(2),
       name,
       phone,
       guests: Number(guests) || 1,
@@ -48,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     await redis.set(KEY, JSON.stringify(list));
 
-    return NextResponse.json({ ok: true, id: doc.id });
+    return NextResponse.json({ ok: true, doc });
   } catch (e: any) {
     return NextResponse.json(
       { error: "failed", detail: e.message },
