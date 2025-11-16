@@ -9,9 +9,13 @@ export default function ReservationsPage() {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [list, setList] = useState([]);
+  let nights = 0;
 
-  const nights =
-    start && end ? Math.ceil((new Date(end) - new Date(start)) / 86400000) : 0;
+if (start && end) {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    nights = Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000);
+}
   const price =
     nights * 85000 +
     (guests > 1 ? (guests - 1) * 35000 * nights : 0);
@@ -105,7 +109,7 @@ export default function ReservationsPage() {
             border: "none",
             fontSize: 18,
           }}
-        >
+        >git
           예약하기
         </button>
       </div>
