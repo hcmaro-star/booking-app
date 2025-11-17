@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { redis } from "../../../../src/lib/redis";
+import { redis } from "@/src/lib/redis";
 
-export const revalidate = 0;
-
+export const revalidate = 0; // 캐시 방지
 const KEY = "reservations";
 
+// GET: 예약 목록 조회
 export async function GET() {
   try {
-    const raw = (await redis.get(KEY)) as string | null;
-    const list = raw ? JSON.parse(raw) : [];
+    const raw = await redis.get(KEY);
+    const list = raw ? JSON.parse(raw as string) : [];
     return NextResponse.json(list);
   } catch (e: any) {
     return NextResponse.json(
@@ -18,23 +18,24 @@ export async function GET() {
   }
 }
 
+// POST: 예약 추가
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, phone, guests, start, end } = body || {};
+    const { name, phone, guests, start, end } = body ?? {};
 
     if (!name || !phone || !start || !end) {
       return NextResponse.json(
-        { error: "bad_request" },
+        { error: "bad_request", detail: "missing_fields" },
         { status: 400 }
       );
     }
 
-    const raw = (await redis.get(KEY)) as string | null;
-    const list = raw ? JSON.parse(raw) : [];
+    const raw = await redis.get(KEY);
+    const list = raw ? JSON.parse(raw as string) : [];
 
     const doc = {
-      id: Math.random().toString(36).slice(2, 10),
+      id: Math.random().toString(36).slice(2),
       name,
       phone,
       guests: Number(guests) || 1,
