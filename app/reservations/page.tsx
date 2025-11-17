@@ -51,45 +51,78 @@ export default function ReservationsPage() {
     }
   }
 
-  // 스타일 2배 확대
-  const bigText = { fontSize: "32px", marginBottom: "20px" };
-  const bigInput = { padding: "20px", fontSize: "20px", marginBottom: "20px" };
+  // 공통 스타일
+  const bigInput = {
+    padding: "18px",
+    fontSize: "20px",
+    width: "100%",
+    marginBottom: "20px",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+  };
+
+  const bigLabel = {
+    fontSize: "24px",
+    fontWeight: "bold",
+    marginBottom: "8px",
+    display: "block",
+  };
 
   return (
-    <div style={{ padding: "50px" }}>
-      <h1 style={{ fontSize: "40px", fontWeight: "bold", marginBottom: "30px" }}>
+    <div
+      style={{
+        padding: "40px",
+        maxWidth: "600px",
+        margin: "0 auto",
+      }}
+    >
+      <h1
+        style={{
+          fontSize: "42px",
+          fontWeight: "bold",
+          marginBottom: "40px",
+          textAlign: "center",
+        }}
+      >
         예약하기
       </h1>
 
-      {/* 입력폼 */}
-      <div style={{ maxWidth: "600px" }}>
+      {/* 입력 form */}
+      <div>
+        <label style={bigLabel}>이름</label>
         <input
           style={bigInput}
           placeholder="이름"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
+
+        <label style={bigLabel}>전화번호</label>
         <input
           style={bigInput}
           placeholder="전화번호"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
+
+        <label style={bigLabel}>인원 수</label>
         <input
           style={bigInput}
           type="number"
-          placeholder="인원"
+          min={1}
           value={guests}
           onChange={(e) => setGuests(Number(e.target.value))}
         />
-        <label style={bigText}>입실 날짜</label>
+
+        <label style={bigLabel}>입실 날짜</label>
         <input
           type="date"
           style={bigInput}
           value={start}
           onChange={(e) => setStart(e.target.value)}
         />
-        <label style={bigText}>퇴실 날짜</label>
+
+        <label style={bigLabel}>퇴실 날짜</label>
         <input
           type="date"
           style={bigInput}
@@ -101,11 +134,12 @@ export default function ReservationsPage() {
           onClick={submit}
           style={{
             padding: "20px",
-            fontSize: "22px",
+            fontSize: "24px",
             background: "#444",
             color: "#fff",
+            width: "100%",
             borderRadius: "10px",
-            marginTop: "20px",
+            marginTop: "10px",
           }}
         >
           예약하기
@@ -113,17 +147,29 @@ export default function ReservationsPage() {
       </div>
 
       {/* 예약 목록 */}
-      <h2 style={{ marginTop: "60px", fontSize: "36px" }}>예약 현황</h2>
+      <h2
+        style={{
+          marginTop: "60px",
+          fontSize: "36px",
+          fontWeight: "bold",
+          textAlign: "center",
+        }}
+      >
+        예약 현황
+      </h2>
 
       {list.length === 0 ? (
-        <p style={{ fontSize: "22px" }}>현재 예약이 없습니다.</p>
+        <p style={{ fontSize: "22px", textAlign: "center", marginTop: "20px" }}>
+          현재 예약이 없습니다.
+        </p>
       ) : (
         list.map((v, i) => (
           <div
             key={i}
             style={{
               padding: "20px",
-              border: "1px solid #ddd",
+              border: "1px solid #ccc",
+              borderRadius: "10px",
               marginTop: "20px",
               fontSize: "22px",
             }}
@@ -140,4 +186,3 @@ export default function ReservationsPage() {
     </div>
   );
 }
-
