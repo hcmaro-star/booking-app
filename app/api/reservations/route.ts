@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { redis } from "@/src/lib/redis";
+import { redis } from "@/lib/redis";
+
 
 export const revalidate = 0; // 캐시 방지
 const KEY = "reservations";
