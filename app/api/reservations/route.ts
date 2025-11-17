@@ -1,37 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { redis } from "@/src/lib/redis";
+import { redis } from "../../../../src/lib/redis";
 
-const KEY = "reservations";
-
-// GET
-export const dynamic = "force-dynamic";   // 🔥 SSR 강제, 캐시 무효화
-export const revalidate = 0;              // 🔥 캐시 재검증 안함
-
-import { NextRequest, NextResponse } from "next/server";
-import { redis } from "@/src/lib/redis";
+export const revalidate = 0;
 
 const KEY = "reservations";
 
 export async function GET() {
   try {
-    const raw = await redis.get(KEY);
-
-    if (!raw) return NextResponse.json([]);
-
-    let list = [];
-
-    try {
-      list = JSON.parse(raw);
-      if (!Array.isArray(list)) list = [];
-    } catch {
-      list = [];
-    }
-
-    return NextResponse.json(list, {
-      headers: {
-        "Cache-Control": "no-store",  // 🔥 캐시 절대 사용 금지
-      },
-    });
+    const raw = (await redis.get(KEY)) as string | null;
+    const list = raw ? JSON.parse(raw) : [];
+    return NextResponse.json(list);
   } catch (e: any) {
     return NextResponse.json(
       { error: "failed", detail: e.message },
@@ -40,7 +18,6 @@ export async function GET() {
   }
 }
 
-// POST
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -53,18 +30,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const raw = await redis.get(KEY);
-    let list = [];
-
-    try {
-      list = raw ? JSON.parse(raw) : [];
-      if (!Array.isArray(list)) list = [];
-    } catch {
-      list = [];
-    }
+    const raw = (await redis.get(KEY)) as string | null;
+    const list = raw ? JSON.parse(raw) : [];
 
     const doc = {
-      id: Date.now(),
+      id: Math.random().toString(36).slice(2, 10),
       name,
       phone,
       guests: Number(guests) || 1,
@@ -74,7 +44,6 @@ export async function POST(req: NextRequest) {
     };
 
     list.push(doc);
-
     await redis.set(KEY, JSON.stringify(list));
 
     return NextResponse.json({ ok: true, id: doc.id });
