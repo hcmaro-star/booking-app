@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
     }
 
     const raw = await redis.get(KEY);
-    const list = Array.isArray(raw) ? raw : raw ? JSON.parse(raw) : [];
+    const json = typeof raw === "string" ? raw : "[]";
+    const list = JSON.parse(json);
 
     const updated = list.map((item: any) =>
       item.id === id ? { ...item, start, end, status: "modified" } : item

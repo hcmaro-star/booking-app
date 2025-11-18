@@ -6,6 +6,7 @@ const KEY = "reservations";
 export async function POST(req: NextRequest) {
   try {
     const { id } = await req.json();
+
     if (!id) {
       return NextResponse.json(
         { ok: false, error: "Missing reservation id" },
@@ -14,9 +15,9 @@ export async function POST(req: NextRequest) {
     }
 
     const raw = await redis.get(KEY);
-    const list = Array.isArray(raw) ? raw : raw ? JSON.parse(raw) : [];
+    const json = typeof raw === "string" ? raw : "[]";
+    const list = JSON.parse(json);
 
-    // 상태 변경
     const updated = list.map((item: any) =>
       item.id === id ? { ...item, status: "canceled" } : item
     );

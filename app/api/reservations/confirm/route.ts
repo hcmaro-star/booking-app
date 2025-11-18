@@ -14,8 +14,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 안전한 파싱
     const raw = await redis.get(KEY);
-    const list = raw ? JSON.parse(raw as string) : [];
+    const json = typeof raw === "string" ? raw : "[]";
+    const list = JSON.parse(json);
 
     const index = list.findIndex((r: any) => r.id === id);
     if (index === -1) {
@@ -30,10 +32,10 @@ export async function POST(req: NextRequest) {
 
     await redis.set(KEY, JSON.stringify(list));
 
-    return NextResponse.json({ ok: true, reservation: list[index] });
+    return NextResponse.json({ ok: true, reservation: list[index]});
   } catch (e: any) {
     return NextResponse.json(
-      { ok: false, error: "Confirm failed", detail: e.message },
+      { ok: false, error: "Failed to confirm", detail: e.message },
       { status: 500 }
     );
   }
