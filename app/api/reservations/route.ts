@@ -10,11 +10,21 @@ export async function GET() {
   try {
     const raw = await redis.get(KEY);
 
-    // Upstash SDK는 { result: string | null } 형태를 반환하는 경우가 많음
-    const json = raw?.result ?? raw ?? "[]";
-    const list = JSON.parse(json);
+    let json: string;
 
+    if (!raw) {
+      json = "[]";
+    } else if (typeof raw === "string") {
+      json = raw;
+    } else if (typeof raw === "object" && "result" in raw) {
+      json = (raw as any).result ?? "[]";
+    } else {
+      json = "[]";
+    }
+
+    const list = JSON.parse(json);
     return NextResponse.json(list);
+
   } catch (e: any) {
     return NextResponse.json(
       { ok: false, error: "Failed to load list", detail: e.message },
@@ -37,7 +47,18 @@ export async function POST(req: NextRequest) {
     }
 
     const raw = await redis.get(KEY);
-    const json = raw?.result ?? raw ?? "[]";
+
+    let json: string;
+    if (!raw) {
+      json = "[]";
+    } else if (typeof raw === "string") {
+      json = raw;
+    } else if (typeof raw === "object" && "result" in raw) {
+      json = (raw as any).result ?? "[]";
+    } else {
+      json = "[]";
+    }
+
     const list = JSON.parse(json);
 
     const newReservation = {
@@ -52,10 +73,10 @@ export async function POST(req: NextRequest) {
     };
 
     list.push(newReservation);
-
     await redis.set(KEY, JSON.stringify(list));
 
     return NextResponse.json({ ok: true, reservation: newReservation });
+
   } catch (e: any) {
     return NextResponse.json(
       { ok: false, error: "Failed to save", detail: e.message },
