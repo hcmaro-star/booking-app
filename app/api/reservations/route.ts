@@ -9,11 +9,11 @@ export const revalidate = 0;
 export async function GET() {
   try {
     const raw = await redis.get(KEY);
-    const list = raw ? JSON.parse(raw) : [];
+    const list = typeof raw === "string" ? JSON.parse(raw) : [];
     return NextResponse.json(list);
   } catch (e: any) {
     return NextResponse.json(
-      { error: "failed", detail: e.message },
+      { ok: false, error: "Failed to get reservations", detail: e.message },
       { status: 500 }
     );
   }
