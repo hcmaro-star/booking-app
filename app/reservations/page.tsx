@@ -24,32 +24,38 @@ export default function ReservationsPage() {
   }, []);
 
   // 예약 제출
-  async function submit() {
-    if (!name || !phone || !start || !end) {
-      alert("모든 항목을 입력해주세요.");
-      return;
-    }
-
-    const res = await fetch("/api/reservations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone, guests, start, end }),
-    });
-
-    const result = await res.json();
-
-    if (result.ok) {
-      alert("예약 완료!");
-      loadReservations();
-      setName("");
-      setPhone("");
-      setGuests(1);
-      setStart("");
-      setEnd("");
-    } else {
-      alert("예약 실패: " + result.detail);
-    }
+async function submit() {
+  if (!name || !phone || !start || !end) {
+    alert("모든 항목을 입력해주세요.");
+    return;
   }
+
+  const res = await fetch("/api/reservations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    cache: "no-store",        // 🔥 JSON 파싱 오류 방지
+    body: JSON.stringify({ name, phone, guests, start, end }),
+  });
+
+  let result;
+  try {
+    result = await res.json();
+  } catch (e) {
+    console.error("JSON 파싱 실패:", e);
+    alert("서버 응답 오류(JSON). 예약 실패.");
+    return;
+  }
+
+  if (result.ok) {
+    alert("예약 완료!");
+  } else {
+    alert(`예약 실패: ${result.error || "알 수 없는 오류"}`);
+  }
+}
+
 
   // 공통 스타일
   const bigInput = {
