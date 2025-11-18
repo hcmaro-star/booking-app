@@ -7,7 +7,7 @@ const KEY = "reservations";
 // GET
 export async function GET() {
   try {
-    const raw = await redis.get(KEY);
+    const raw = (await redis.get(KEY)) as { result: string | null };
     const json = raw?.result ?? "[]";
     const list = JSON.parse(json);
 
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const raw = await redis.get(KEY);
+    const raw = (await redis.get(KEY)) as { result: string | null };
     const json = raw?.result ?? "[]";
     const list = JSON.parse(json);
 
