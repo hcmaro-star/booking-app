@@ -22,42 +22,72 @@ export async function GET() {
 // POST: 예약 생성
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { name, phone, guests, start, end } = body
+    // --- BODY 확인
+    let body: any;
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error("❌ req.json() 파싱 실패:", e);
+      return NextResponse.json(
+        { ok: false, error: "Invalid JSON body" },
+        { status: 400 }
+      );
+    }
+
+    console.log("📌 받은 body:", body);
+
+    const { name, phone, guests, start, end } = body;
 
     if (!name || !phone || !start || !end) {
+      console.error("❌ 누락된 필드:", body);
       return NextResponse.json(
         { ok: false, error: "Missing required fields" },
         { status: 400 }
-      )
+      );
     }
 
-    // 기존 예약 리스트 읽기
-    const raw = await redis.get(KEY)
-    const list = raw ? JSON.parse(raw as string) : []
+    // --- Redis에서 기존값 읽기
+    const raw = await redis.get(KEY);
+    console.log("📌 Redis raw:", raw);
 
-    // 새 예약 push
-    const reservation = {
-      id: uuid(),
+    const list = typeof raw === "string" ? JSON.parse(raw) : [];
+    console.log("📌 기존 list:", list);
+
+    // --- 새로운 예약 추가
+    const newItem = {
+      id: Date.now().toString(),
       name,
       phone,
-      guests: guests ?? null,
+      guests,
       start,
       end,
-      status: "pending",   // 새 예약은 항상 대기 상태
-      createdAt: new Date().toISOString()
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+
+    list.push(newItem);
+
+    // --- Redis 저장
+    try {
+      await redis.set(KEY, JSON.stringify(list));
+    } catch (e) {
+      console.error("❌ redis.set() 실패:", e);
+      return NextResponse.json(
+        { ok: false, error: "Redis save failed", detail: String(e) },
+        { status: 500 }
+      );
     }
 
-    list.push(reservation)
+    console.log("✅ 저장 완료:", newItem);
 
-    // 저장
-    await redis.set(KEY, JSON.stringify(list))
+    return NextResponse.json({ ok: true, reservation: newItem });
 
-    return NextResponse.json({ ok: true, reservation })
   } catch (e: any) {
+    console.error("❌ POST 전체 오류:", e);
+
     return NextResponse.json(
       { ok: false, error: "Failed to save", detail: e.message },
       { status: 500 }
-    )
+    );
   }
 }
