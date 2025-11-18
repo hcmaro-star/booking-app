@@ -1,24 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 
-export const revalidate = 0;
 const KEY = "reservations";
 
-// GET
+export const revalidate = 0;
+
+// GET: 모든 예약 조회
 export async function GET() {
   try {
     const raw = await redis.get(KEY);
-    const list = typeof raw === "string" ? JSON.parse(raw) : [];
+
+    // Upstash SDK는 { result: string | null } 형태를 반환하는 경우가 많음
+    const json = raw?.result ?? raw ?? "[]";
+    const list = JSON.parse(json);
+
     return NextResponse.json(list);
   } catch (e: any) {
     return NextResponse.json(
-      { ok: false, error: "Failed to get", detail: e.message },
+      { ok: false, error: "Failed to load list", detail: e.message },
       { status: 500 }
     );
   }
 }
 
-// POST
+// POST: 예약 생성
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -31,12 +36,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 기존 목록 불러오기
     const raw = await redis.get(KEY);
-    const list = typeof raw === "string" ? JSON.parse(raw) : [];
+    const json = raw?.result ?? raw ?? "[]";
+    const list = JSON.parse(json);
 
-    // 새 예약 추가
-    const reservation = {
+    const newReservation = {
       id: Date.now().toString(),
       name,
       phone,
@@ -44,14 +48,14 @@ export async function POST(req: NextRequest) {
       start,
       end,
       status: "pending",
+      createdAt: new Date().toISOString(),
     };
 
-    list.push(reservation);
+    list.push(newReservation);
 
-    // 저장
     await redis.set(KEY, JSON.stringify(list));
 
-    return NextResponse.json({ ok: true, reservation });
+    return NextResponse.json({ ok: true, reservation: newReservation });
   } catch (e: any) {
     return NextResponse.json(
       { ok: false, error: "Failed to save", detail: e.message },
