@@ -4,10 +4,11 @@ import { redis } from "@/lib/redis";
 const KEY = "reservations";
 
 function toJsonString(raw: any): string {
-  if (!raw) return "[]";
+  if (!raw || raw === "") return "[]";  // ← 여기 "" 추가!!! 이게 핵심
   if (typeof raw === "string") return raw;
-  if (typeof raw === "object" && typeof raw.result === "string") return raw.result;
-  if (typeof raw === "object" && typeof raw.data === "string") return raw.data;
+  if (raw && typeof raw === "object" && typeof raw.result === "string") return raw.result;
+  if (raw && typeof raw === "object" && typeof raw.data === "string") return raw.data;
+  if (Array.isArray(raw)) return JSON.stringify(raw);  // ← 만약 이미 배열로 오면 stringify
   return "[]";
 }
 

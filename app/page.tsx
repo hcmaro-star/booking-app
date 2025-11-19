@@ -56,6 +56,7 @@ export default function Home() {
         </p>
       </div>
 
+
       <a
         href="/reservations"
         style={{
