@@ -4,15 +4,36 @@ import { redis } from "@/lib/redis";
 export const revalidate = 0;
 const KEY = "reservations";
 
+/** Upstash의 반환(raw)이
+ *  - string
+ *  - null
+ *  - { result: "string" }
+ *  - { data: "string" }
+ *  어떤 형태이든 문자열을 반환하도록 통일
+ */
+function toJsonString(raw: any): string {
+  if (!raw) return "[]";
+
+  if (typeof raw === "string") return raw;
+
+  if (typeof raw === "object" && typeof raw.result === "string") {
+    return raw.result;
+  }
+
+  if (typeof raw === "object" && typeof raw.data === "string") {
+    return raw.data;
+  }
+
+  return "[]";
+}
+
 // GET: 전체 예약 조회
 export async function GET() {
   try {
     const raw = await redis.get(KEY);
+    const json = toJsonString(raw);
+    const list = JSON.parse(json);
 
-    // Upstash Redis SDK는 string 또는 null만 반환함
-    const text = typeof raw === "string" ? raw : "[]";
-
-    const list = JSON.parse(text);
     return NextResponse.json(list);
   } catch (e: any) {
     return NextResponse.json(
@@ -36,8 +57,8 @@ export async function POST(req: NextRequest) {
     }
 
     const raw = await redis.get(KEY);
-    const text = typeof raw === "string" ? raw : "[]";
-    const list = JSON.parse(text);
+    const json = toJsonString(raw);
+    const list = JSON.parse(json);
 
     const newItem = {
       id: Date.now().toString(),
@@ -51,7 +72,6 @@ export async function POST(req: NextRequest) {
     };
 
     list.push(newItem);
-
     await redis.set(KEY, JSON.stringify(list));
 
     return NextResponse.json({ ok: true, reservation: newItem });
