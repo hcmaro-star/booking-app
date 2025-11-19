@@ -1,0 +1,38 @@
+/* app/reservations/custom-calendar.css */
+.rdrDay {
+  position: relative;
+}
+
+.check-in-day::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 50%;
+  background: #3b82f6;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.check-out-day::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 50%;
+  bottom: 0;
+  left: 0;
+  background: #3b82f6;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.full-booked-day {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+.check-in-day, .check-out-day, .full-booked-day {
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+}
