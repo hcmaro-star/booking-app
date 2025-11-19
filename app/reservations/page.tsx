@@ -10,6 +10,21 @@ export default function ReservationsPage() {
   const [end, setEnd] = useState("");
   const [list, setList] = useState<any[]>([]);
 
+  // 전화번호 마스킹 (010****5678)
+  const maskPhone = (phone: string) => {
+    const cleaned = phone.replace(/[^0-9]/g, "");
+    if (cleaned.length >= 10) {
+      return `${cleaned.slice(0, 3)}****${cleaned.slice(-4)}`;
+    }
+    return "****";
+  };
+
+  // 이름 마스킹 (홍** or 홍*동)
+  const maskName = (name: string) => {
+    if (name.length <= 2) return name[0] + "*".repeat(name.length - 1);
+    return name[0] + "*".repeat(name.length - 2) + name.slice(-1);
+  };
+
   // 예약 목록 불러오기
   async function loadReservations() {
     try {
@@ -24,38 +39,39 @@ export default function ReservationsPage() {
   }, []);
 
   // 예약 제출
-async function submit() {
-  if (!name || !phone || !start || !end) {
-    alert("모든 항목을 입력해주세요.");
-    return;
+  async function submit() {
+    if (!name || !phone || !start || ! end) {
+      alert("모든 항목을 입력해주세요.");
+      return;
+    }
+
+    const res = await fetch("/api/reservations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      cache: "no-store",
+      body: JSON.stringify({ name, phone, guests, start, end }),
+    });
+
+    let result;
+    try {
+      result = await res.json();
+    } catch (e) {
+      console.error("JSON 파싱 실패:", e);
+      alert("서버 응답 오류(JSON). 예약 실패.");
+      return;
+    }
+
+    if (result.ok) {
+      alert("예약 완료!");
+      setName(""); setPhone(""); setGuests(1); setStart(""); setEnd("");
+      loadReservations(); // 새로고침
+    } else {
+      alert(`예약 실패: ${result.error || "알 수 없는 오류"}`);
+    }
   }
-
-  const res = await fetch("/api/reservations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json"
-    },
-    cache: "no-store",        // 🔥 JSON 파싱 오류 방지
-    body: JSON.stringify({ name, phone, guests, start, end }),
-  });
-
-  let result;
-  try {
-    result = await res.json();
-  } catch (e) {
-    console.error("JSON 파싱 실패:", e);
-    alert("서버 응답 오류(JSON). 예약 실패.");
-    return;
-  }
-
-  if (result.ok) {
-    alert("예약 완료!");
-  } else {
-    alert(`예약 실패: ${result.error || "알 수 없는 오류"}`);
-  }
-}
-
 
   // 공통 스타일
   const bigInput = {
@@ -152,10 +168,10 @@ async function submit() {
         </button>
       </div>
 
-      {/* 예약 목록 */}
+      {/* 예약 현황 - 개인정보 완벽 보호 버전 */}
       <h2
         style={{
-          marginTop: "60px",
+          marginTop: "80px",
           fontSize: "36px",
           fontWeight: "bold",
           textAlign: "center",
@@ -165,29 +181,31 @@ async function submit() {
       </h2>
 
       {list.length === 0 ? (
-        <p style={{ fontSize: "22px", textAlign: "center", marginTop: "20px" }}>
+        <p style={{ fontSize: "22px", textAlign: "center", marginTop: "20px", color: "#666" }}>
           현재 예약이 없습니다.
         </p>
       ) : (
-        list.map((v, i) => (
-          <div
-            key={i}
-            style={{
-              padding: "20px",
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              marginTop: "20px",
-              fontSize: "22px",
-            }}
-          >
-            <div>이름: {v.name}</div>
-            <div>전화번호: {v.phone}</div>
-            <div>인원: {v.guests}</div>
-            <div>
-              날짜: {v.start} ~ {v.end}
+        <div style={{ marginTop: "20px" }}>
+          {list.map((v, i) => (
+            <div
+              key={i}
+              style={{
+                padding: "24px",
+                border: "2px solid #eee",
+                borderRadius: "16px",
+                marginBottom: "16px",
+                background: "#fdfdfd",
+                fontSize: "20px",
+                lineHeight: "1.8",
+              }}
+            >
+              <div><strong>이름:</strong> {maskName(v.name)}</div>
+              <div><strong>연락처:</strong> {maskPhone(v.phone)}</div>
+              <div><strong>인원:</strong> {v.guests}명</div>
+              <div><strong>날짜:</strong> {v.start} ~ {v.end}</div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </div>
   );
