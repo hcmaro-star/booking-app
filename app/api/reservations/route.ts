@@ -4,28 +4,24 @@ import { redis } from "@/lib/redis";
 const KEY = "reservations";
 export const revalidate = 0;
 
-// Upstash 반환 변수를 안전하게 문자열로 변환
+// Upstash SDK 반환값 → 안정적으로 문자열만 뽑는 함수
 function toJsonString(raw: any): string {
   if (!raw) return "[]";
 
-  // 문자열이면 그대로
   if (typeof raw === "string") return raw;
 
-  // Upstash: { result: "..." }
   if (typeof raw === "object" && typeof raw.result === "string") {
     return raw.result;
   }
 
-  // Upstash 최신 형태: { data: "..." }
   if (typeof raw === "object" && typeof raw.data === "string") {
     return raw.data;
   }
 
-  // 예측 못한 형태면 빈 배열
   return "[]";
 }
 
-// GET
+// GET: 전체 예약 조회
 export async function GET() {
   try {
     const raw = await redis.get(KEY);
@@ -40,7 +36,7 @@ export async function GET() {
   }
 }
 
-// POST
+// POST: 예약 저장
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -69,6 +65,7 @@ export async function POST(req: NextRequest) {
     };
 
     list.push(newItem);
+
     await redis.set(KEY, JSON.stringify(list));
 
     return NextResponse.json({ ok: true, reservation: newItem });
