@@ -11,7 +11,24 @@ export default function ReservationsPage() {
   const [end, setEnd] = useState("");
   const [list, setList] = useState<any[]>([]);
 
-  // 확정된 예약만 추출해서 예약된 날짜 범위 배열 만들기
+  // ────────────────── 스타일 정의 (필수!) ──────────────────
+  const bigInput = {
+    padding: "18px",
+    fontSize: "20px",
+    width: "100%",
+    marginBottom: "20px",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+  } as const;
+
+  const bigLabel = {
+    fontSize: "24px",
+    fontWeight: "bold" as const,
+    marginBottom: "8px",
+    display: "block" as const,
+  } as const;
+
+  // ────────────────── 예약된 날짜 처리 로직 ──────────────────
   const getBookedDateRanges = () => {
     return list
       .filter((item) => item.status === "confirmed")
@@ -21,27 +38,14 @@ export default function ReservationsPage() {
       }));
   };
 
-  // 특정 날짜가 확정 예약 범위에 속하는지 확인
   const isDateBooked = (date: Date) => {
     const ranges = getBookedDateRanges();
     return ranges.some((range) =>
-      isWithinInterval(date, { start: range.start, end: addDays(range.end, -1) }) // 퇴실일은 체크아웃이라 포함 안 함
+      isWithinInterval(date, { start: range.start, end: addDays(range.end, -1) })
     );
   };
 
-  // 날짜 선택 제한 (이미 예약된 날짜 비활성화)
-  const getDateProps = (date: Date) => {
-    if (isDateBooked(date)) {
-      return {
-        disabled: true,
-        style: { backgroundColor: "#dbeafe", color: "#6366f1", cursor: "not-allowed" },
-        className: "booked-date",
-      };
-    }
-    return {};
-  };
-
-  // 예약 목록 불러오기
+  // ────────────────── 예약 목록 불러오기 ──────────────────
   async function loadReservations() {
     try {
       const res = await fetch("/api/reservations");
@@ -54,16 +58,16 @@ export default function ReservationsPage() {
     loadReservations();
   }, []);
 
-  // 예약 제출
+  // ────────────────── 예약 제출 ──────────────────
   async function submit() {
     if (!name || !phone || !start || !end) {
       alert("모든 항목을 입력해주세요.");
       return;
     }
 
-    // 날짜 유효성 + 중복 체크
     const startDate = new Date(start);
     const endDate = new Date(end);
+
     if (isBefore(endDate, addDays(startDate, 1))) {
       alert("퇴실 날짜는 입실 다음 날 이후여야 합니다.");
       return;
@@ -91,7 +95,6 @@ export default function ReservationsPage() {
       alert("예약 완료!");
       setName("");
       setPhone("");
-      setPhone("");
       setGuests(1);
       setStart("");
       setEnd("");
@@ -101,36 +104,69 @@ export default function ReservationsPage() {
     }
   }
 
+  // ────────────────── 이름/전화번호 마스킹 ──────────────────
+  const maskPhone = (phone: string) => {
+    const cleaned = phone.replace(/[^0-9]/g, "");
+    if (cleaned.length >= 10) {
+      return `${cleaned.slice(0, 3)}****${cleaned.slice(-4)}`;
+    }
+    return "****";
+  };
+
+  const maskName = (name: string) => {
+    if (name.length <= 2) return name[0] + "*".repeat(name.length - 1);
+    return name[0] + "*".repeat(name.length - 2) + name.slice(-1);
+  };
+
+  // ────────────────── JSX ──────────────────
   return (
     <div style={{ padding: "40px", maxWidth: "600px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
       <h1 style={{ fontSize: "42px", fontWeight: "bold", marginBottom: "40px", textAlign: "center" }}>
         예약하기
       </h1>
 
-      {/* 입력 폼 생략 (기존 그대로) */}
-      {/* ... 기존 입력 폼 코드 그대로 ... */}
+      <label style={bigLabel}>이름</label>
+      <input style={bigInput} placeholder="이름" value={name} onChange={(e) => setName(e.target.value)} />
+
+      <label style={bigLabel}>전화번호</label>
+      <input style={bigInput} placeholder="전화번호" value={phone} onChange={(e) => setPhone(e.target.value)} />
+
+      <label style={bigLabel}>인원 수</label>
+      <input style={bigInput} type="number" min={1} value={guests} onChange={(e) => setGuests(Number(e.target.value))} />
 
       <label style={bigLabel}>입실 날짜</label>
       <input
         type="date"
-        style={bigInput}
+        style={{ ...bigInput, backgroundColor: start && isDateBooked(new Date(start)) ? "#dbeafe" : "" }}
         value={start}
-        onChange={(e) => setStart(e.target.value)}
         min={format(new Date(), "yyyy-MM-dd")}
-        {...getDateProps(new Date(start || new Date()))}
+        onChange={(e) => setStart(e.target.value)}
+        disabled={start && isDateBooked(new Date(start))}
       />
 
       <label style={bigLabel}>퇴실 날짜</label>
       <input
         type="date"
-        style={bigInput}
+        style={{ ...bigInput, backgroundColor: end && isDateBooked(new Date(end)) ? "#dbeafe" : "" }}
         value={end}
-        onChange={(e) => setEnd(e.target.value)}
         min={start ? format(addDays(new Date(start), 1), "yyyy-MM-dd") : ""}
-        {...getDateProps(new Date(end || new Date()))}
+        onChange={(e) => setEnd(e.target.value)}
+        disabled={end && isDateBooked(new Date(end))}
       />
 
-      <button onClick={submit} style={{ /* 기존 버튼 스타일 */ }}>
+      <button
+        onClick={submit}
+        style={{
+          padding: "20px",
+          fontSize: "24px",
+          background: "#444",
+          color: "#fff",
+          width: "100%",
+          borderRadius: "10px",
+          marginTop: "20px",
+          cursor: "pointer",
+        }}
+      >
         예약하기
       </button>
 
@@ -151,35 +187,22 @@ export default function ReservationsPage() {
               <div
                 key={i}
                 style={{
-                  padding: "20px",
+                  padding: "24px",
                   background: "#e0e7ff",
-                  borderRadius: "12px",
-                  marginBottom: "12px",
-                  fontSize: "19px",
-                  lineHeight: "1.7",
+                  borderRadius: "16px",
+                  marginBottom: "16px",
+                  fontSize: "20px",
+                  lineHeight: "1.8",
                 }}
               >
                 <div><strong>이름:</strong> {maskName(v.name)}</div>
                 <div><strong>연락처:</strong> {maskPhone(v.phone)}</div>
                 <div><strong>인원:</strong> {v.guests}명</div>
-                <div><strong>기간:</strong> {v.start} ~ {v.end} (확정)</div>
+                <div><strong>날짜:</strong> {v.start} ~ {v.end}</div>
               </div>
             ))}
         </div>
       )}
-
-      <style jsx>{`
-        .booked-date {
-          background-color: #dbeafe !important;
-          color: #6366f1 !important;
-          pointer-events: none;
-          opacity: 0.7;
-        }
-      `}</style>
     </div>
   );
 }
-
-// 이름/전화번호 마스킹 함수 (기존 그대로 유지)
-const maskPhone = (phone: string) => { /* 기존 코드 */ };
-const maskName = (name: string) => { /* 기존 코드 */ };
