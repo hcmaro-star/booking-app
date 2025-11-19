@@ -11,7 +11,7 @@ export default function ReservationsPage() {
   const [end, setEnd] = useState("");
   const [list, setList] = useState<any[]>([]);
 
-  // 스타일 (원래 그대로)
+  // 스타일 정의
   const bigInput = {
     padding: "18px",
     fontSize: "20px",
@@ -32,14 +32,14 @@ export default function ReservationsPage() {
   // 확정 예약만
   const confirmed = list.filter((item) => item.status === "confirmed");
 
-  // 날짜이 범위에 있는지
-  const isBlocked = (dateStr: string) => {
+  // 날짜가 예약된 범위에 있는지 확인 (퇴실일은 제외)
+  const isDateBlocked = (dateStr: string) => {
     if (!dateStr) return false;
     const date = new Date(dateStr);
     return confirmed.some((res) => {
-      const s = new Date(res.start);
-      const e = new Date(res.end);
-      return isWithinInterval(date, { start: s, end: addDays(e, -1) });
+      const resStart = new Date(res.start);
+      const resEnd = new Date(res.end);
+      return isWithinInterval(date, { start: resStart, end: addDays(resEnd, -1) });
     });
   };
 
@@ -55,29 +55,55 @@ export default function ReservationsPage() {
     });
   };
 
+  // 예약 목록 불러오기 함수 (이게 빠져서 오류 났습니다!)
+  const loadReservations = async () => {
+    try {
+      const res = await fetch("/api/reservations");
+      const data = await res.json();
+      if (Array.isArray(data)) setList(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/reservations")
-      .then((r) => r.json())
-      .then((data) => Array.isArray(data) && setList(data));
+    loadReservations();
   }, []);
 
+  // 예약 제출
   const submit = async () => {
-    if (!name || !phone || !start || !end) return alert("모든 항목을 입력해 주세요.");
-    if (hasOverlap()) return alert("선택한 기간에 이미 예약이 있습니다.");
+    if (!name || !phone || !start || !end) {
+      alert("모든 항목을 입력해 주세요.");
+      return;
+    }
+
+    if (hasOverlap()) {
+      alert("선택하신 기간에 이미 확정된 예약이 있습니다.");
+      return;
+    }
 
     const res = await fetch("/api/reservations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      cache: "no-store",
       body: JSON.stringify({ name, phone, guests, start, end }),
     });
 
-    if ((await res.json()).ok) {
+    const result = await res.json();
+    if (result.ok) {
       alert("예약 완료되었습니다!");
-      setName(""); setPhone(""); setGuests(1); setStart(""); setEnd("");
-      loadReservations();
+      setName("");
+      setPhone("");
+      setGuests(1);
+      setStart("");
+      setEnd("");
+      loadReservations(); // 여기서 다시 불러옴
+    } else {
+      alert(`예약 실패: ${result.error || "알 수 없는 오류"}`);
     }
   };
 
+  // 마스킹 함수
   const maskName = (n: string) => (n.length > 2 ? n[0] + "*".repeat(n.length - 2) + n.slice(-1) : n[0] + "*");
   const maskPhone = (p: string) => p.replace(/(\d{3})\d+(\d{4})/, "$1****$2");
 
@@ -93,7 +119,7 @@ export default function ReservationsPage() {
       <label style={bigLabel}>전화번호</label>
       <input style={bigInput} placeholder="01012345678" value={phone} onChange={(e) => setPhone(e.target.value)} />
 
-      <label style={bigLabel}>인원</label>
+      <label style={bigLabel}>인원 수</label>
       <input style={bigInput} type="number" min={1} value={guests} onChange={(e) => setGuests(Number(e.target.value))} />
 
       <label style={bigLabel}>입실 날짜</label>
@@ -101,8 +127,7 @@ export default function ReservationsPage() {
         type="date"
         style={{
           ...bigInput,
-          backgroundColor: isBlocked(start) ? "#fee2e2" : "#ffffff",
-          cursor: isBlocked(start) ? "not-allowed" : "pointer",
+          backgroundColor: isDateBlocked(start) ? "#fee2e2" : "#ffffff",
         }}
         value={start}
         min={format(new Date(), "yyyy-MM-dd")}
@@ -114,8 +139,7 @@ export default function ReservationsPage() {
         type="date"
         style={{
           ...bigInput,
-          backgroundColor: isBlocked(end) ? "#fee2e2" : "#ffffff",
-          cursor: isBlocked(end) ? "not-allowed" : "pointer",
+          backgroundColor: isDateBlocked(end) ? "#fee2e2" : "#ffffff",
         }}
         value={end}
         min={start ? format(addDays(new Date(start), 1), "yyyy-MM-dd") : ""}
@@ -146,8 +170,17 @@ export default function ReservationsPage() {
           현재 예약이 없습니다.
         </p>
       ) : (
-        list.filter(v => v.status === "confirmed").map((v, i) => (
-          <div key={i} style={{ padding: "20px", border: "1px solid #ccc", borderRadius: "10px", marginTop: "20px", fontSize: "22px" }}>
+        confirmed.map((v, i) => (
+          <div
+            key={i}
+            style={{
+              padding: "20px",
+              border: "1px solid #ccc",
+              borderRadius: "10px",
+              marginTop: "20px",
+              fontSize: "22px",
+            }}
+          >
             <div>이름: {maskName(v.name)}</div>
             <div>전화번호: {maskPhone(v.phone)}</div>
             <div>인원: {v.guests}</div>
