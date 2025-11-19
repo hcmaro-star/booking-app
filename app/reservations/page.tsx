@@ -1,112 +1,160 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DateRangePicker } from "react-date-range";
-import { ko } from "date-fns/locale";
-import { addDays, isSameDay, startOfDay, eachDayOfInterval } from "date-fns";
-import "react-date-range/dist/styles.css";
-import "app/reservations/calendar.css"; // 커스텀 CSS
+import { format, addDays, isWithinInterval } from "date-fns";
 
 export default function ReservationsPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [guests, setGuests] = useState(1);
-  const [range, setRange] = useState([
-    {
-      startDate: new Date(),
-      endDate: addDays(new Date(), 1),
-      key: "selection",
-    },
-  ]);
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
   const [list, setList] = useState<any[]>([]);
 
-  const bookedRanges = list
-    .filter((r) => r.status === "confirmed")
-    .map((r) => ({
-      start: startOfDay(new Date(r.start)),
-      end: startOfDay(new Date(r.end)),
-    }));
-
-  const getDayClassName = (date: Date) => {
-    const d = startOfDay(date);
-    for (const b of bookedRanges) {
-      if (isSameDay(d, b.start)) return "check-in-day";
-      if (isSameDay(d, addDays(b.end, -1)) && !isSameDay(d, b.start)) return "check-out-day";
-      const days = eachDayOfInterval({ start: b.start, end: addDays(b.end, -1) });
-      if (days.length > 1 && days.some((day) => isSameDay(day, d))) return "full-booked-day";
-    }
-    return "";
+  // 스타일 (원래 그대로)
+  const bigInput = {
+    padding: "18px",
+    fontSize: "20px",
+    width: "100%",
+    marginBottom: "20px",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    boxSizing: "border-box" as const,
   };
 
+  const bigLabel = {
+    fontSize: "24px",
+    fontWeight: "bold" as const,
+    marginBottom: "8px",
+    display: "block" as const,
+  };
+
+  // 확정 예약만
+  const confirmed = list.filter((item) => item.status === "confirmed");
+
+  // 날짜이 범위에 있는지
+  const isBlocked = (dateStr: string) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    return confirmed.some((res) => {
+      const s = new Date(res.start);
+      const e = new Date(res.end);
+      return isWithinInterval(date, { start: s, end: addDays(e, -1) });
+    });
+  };
+
+  // 중복 체크
   const hasOverlap = () => {
-    const newStart = startOfDay(range[0].startDate);
-    const newEnd = startOfDay(range[0].endDate);
-    return bookedRanges.some((b) => newStart < b.end && newEnd > b.start);
+    if (!start || !end) return false;
+    const newStart = new Date(start);
+    const newEnd = new Date(end);
+    return confirmed.some((res) => {
+      const resStart = new Date(res.start);
+      const resEnd = new Date(res.end);
+      return newStart < resEnd && newEnd > resStart;
+    });
   };
 
   useEffect(() => {
-    fetch("/api/reservations").then(r => r.json()).then(data => Array.isArray(data) && setList(data));
+    fetch("/api/reservations")
+      .then((r) => r.json())
+      .then((data) => Array.isArray(data) && setList(data));
   }, []);
 
   const submit = async () => {
-    if (!name || !phone) return alert("이름과 전화번호를 입력해 주세요.");
-    if (hasOverlap()) return alert("해당 기간에 이미 예약이 있습니다.");
+    if (!name || !phone || !start || !end) return alert("모든 항목을 입력해 주세요.");
+    if (hasOverlap()) return alert("선택한 기간에 이미 예약이 있습니다.");
 
     const res = await fetch("/api/reservations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        phone,
-        guests,
-        start: range[0].startDate.toISOString().split("T")[0],
-        end: range[0].endDate.toISOString().split("T")[0],
-      }),
+      body: JSON.stringify({ name, phone, guests, start, end }),
     });
 
     if ((await res.json()).ok) {
-      alert("예약 완료!");
-      location.reload();
+      alert("예약 완료되었습니다!");
+      setName(""); setPhone(""); setGuests(1); setStart(""); setEnd("");
+      loadReservations();
     }
   };
 
-  const bigInput = { padding: "18px", fontSize: "20px", width: "100%", marginBottom: "20px", border: "1px solid #ccc", borderRadius: "8px" };
+  const maskName = (n: string) => (n.length > 2 ? n[0] + "*".repeat(n.length - 2) + n.slice(-1) : n[0] + "*");
+  const maskPhone = (p: string) => p.replace(/(\d{3})\d+(\d{4})/, "$1****$2");
 
   return (
-    <div style={{ padding: "40px", maxWidth: "700px", margin: "0 auto" }}>
+    <div style={{ padding: "40px", maxWidth: "600px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
       <h1 style={{ fontSize: "42px", fontWeight: "bold", textAlign: "center", marginBottom: "40px" }}>
         예약하기
       </h1>
 
+      <label style={bigLabel}>이름</label>
       <input style={bigInput} placeholder="이름" value={name} onChange={(e) => setName(e.target.value)} />
-      <input style={bigInput} placeholder="전화번호" value={phone} onChange={(e) => setPhone(e.target.value)} />
+
+      <label style={bigLabel}>전화번호</label>
+      <input style={bigInput} placeholder="01012345678" value={phone} onChange={(e) => setPhone(e.target.value)} />
+
+      <label style={bigLabel}>인원</label>
       <input style={bigInput} type="number" min={1} value={guests} onChange={(e) => setGuests(Number(e.target.value))} />
 
-      <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 4px 30px rgba(0,0,0,0.1)", margin: "40px 0" }}>
-        <DateRangePicker
-          ranges={range}
-          onChange={(item) => setRange([item.selection as any])}
-          minDate={new Date()}
-          locale={ko}
-          months={2}
-          direction="horizontal"
-          dayContentRenderer={(date) => (
-            <div className={getDayClassName(date)} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {date.getDate()}
-            </div>
-          )}
-        />
-      </div>
+      <label style={bigLabel}>입실 날짜</label>
+      <input
+        type="date"
+        style={{
+          ...bigInput,
+          backgroundColor: isBlocked(start) ? "#fee2e2" : "#ffffff",
+          cursor: isBlocked(start) ? "not-allowed" : "pointer",
+        }}
+        value={start}
+        min={format(new Date(), "yyyy-MM-dd")}
+        onChange={(e) => setStart(e.target.value)}
+      />
 
-      <div style={{ textAlign: "center", fontSize: "20px", marginBottom: "30px" }}>
-        선택: {range[0].startDate.toLocaleDateString("ko-KR")} ~ {range[0].endDate.toLocaleDateString("ko-KR")}
-      </div>
+      <label style={bigLabel}>퇴실 날짜</label>
+      <input
+        type="date"
+        style={{
+          ...bigInput,
+          backgroundColor: isBlocked(end) ? "#fee2e2" : "#ffffff",
+          cursor: isBlocked(end) ? "not-allowed" : "pointer",
+        }}
+        value={end}
+        min={start ? format(addDays(new Date(start), 1), "yyyy-MM-dd") : ""}
+        onChange={(e) => setEnd(e.target.value)}
+      />
 
-      <button onClick={submit} style={{ padding: "20px", fontSize: "24px", background: "#222", color: "#fff", width: "100%", borderRadius: "12px" }}>
+      <button
+        onClick={submit}
+        style={{
+          padding: "20px",
+          fontSize: "24px",
+          background: "#444",
+          color: "#fff",
+          width: "100%",
+          borderRadius: "10px",
+          marginTop: "10px",
+        }}
+      >
         예약하기
       </button>
 
-      {/* 예약 현황은 기존과 동일하게 유지하시면 됩니다 */}
+      <h2 style={{ marginTop: "60px", fontSize: "36px", fontWeight: "bold", textAlign: "center" }}>
+        예약 현황
+      </h2>
+
+      {confirmed.length === 0 ? (
+        <p style={{ textAlign: "center", fontSize: "22px", marginTop: "20px", color: "#666" }}>
+          현재 예약이 없습니다.
+        </p>
+      ) : (
+        list.filter(v => v.status === "confirmed").map((v, i) => (
+          <div key={i} style={{ padding: "20px", border: "1px solid #ccc", borderRadius: "10px", marginTop: "20px", fontSize: "22px" }}>
+            <div>이름: {maskName(v.name)}</div>
+            <div>전화번호: {maskPhone(v.phone)}</div>
+            <div>인원: {v.guests}</div>
+            <div>날짜: {v.start} ~ {v.end}</div>
+          </div>
+        ))
+      )}
     </div>
   );
 }
