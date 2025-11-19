@@ -32,7 +32,7 @@ export default function ReservationsPage() {
   // 확정 예약만
   const confirmed = list.filter((item) => item.status === "confirmed");
 
-  // 날짜가 예약된 범위에 있는지 확인 (퇴실일은 제외)
+  // 날짜가 예약된 범위에 있는지 확인 (퇴실일 제외)
   const isDateBlocked = (dateStr: string) => {
     if (!dateStr) return false;
     const date = new Date(dateStr);
@@ -55,7 +55,7 @@ export default function ReservationsPage() {
     });
   };
 
-  // 예약 목록 불러오기 함수 (이게 빠져서 오류 났습니다!)
+  // 예약 목록 불러오기
   const loadReservations = async () => {
     try {
       const res = await fetch("/api/reservations");
@@ -78,12 +78,9 @@ export default function ReservationsPage() {
     }
 
     if (hasOverlap()) {
-      alert("선택하신 기간에 이미 예약이 있습니다.\n\n가능한 퇴실 날짜를 다시 확인해 주세요.\n(이미 예약된 날짜는 빨간 배경으로 표시됩니다)");
+      alert("선택하신 기간에 이미 확정된 예약이 있습니다.\n\n가능한 퇴실 날짜를 다시 확인해 주세요.");
       return;
     }
-    
-    // 기존 예약 로직 그대로...
-  };
 
     const res = await fetch("/api/reservations", {
       method: "POST",
@@ -94,13 +91,13 @@ export default function ReservationsPage() {
 
     const result = await res.json();
     if (result.ok) {
-      alert("예약 완료되었습니다!");
+      alert("예약이 완료되었습니다!");
       setName("");
       setPhone("");
       setGuests(1);
       setStart("");
       setEnd("");
-      loadReservations(); // 여기서 다시 불러옴
+      loadReservations();
     } else {
       alert(`예약 실패: ${result.error || "알 수 없는 오류"}`);
     }
@@ -146,22 +143,7 @@ export default function ReservationsPage() {
         }}
         value={end}
         min={start ? format(addDays(new Date(start), 1), "yyyy-MM-dd") : ""}
-        onChange={(e) => {
-          const selected = e.target.value;
-          setEnd(selected);
-
-          if (selected && isDateBlocked(selected)) {
-            // 막힌 날짜를 선택하면 가능한 가장 빠른 날짜로 자동 이동 + 안내
-            let nextAvailable = new Date(selected);
-            while (isDateBlocked(format(nextAvailable, "yyyy-MM-dd"))) {
-              nextAvailable = addDays(nextAvailable, 1);
-            }
-            const availableStr = format(nextAvailable, "yyyy-MM-dd");
-            setEnd(availableStr);
-
-            alert(`선택하신 ${selected}은 이미 예약이 차 있습니다.\n\n가능한 가장 빠른 퇴실 날짜는 ${availableStr}입니다.\n(자동으로 변경되었습니다)\n\n체크아웃은 오전 11시, 다음 게스트는 오후 3시부터 입실 가능합니다.`);
-          }
-        }}
+        onChange={(e) => setEnd(e.target.value)}
       />
 
       <button
