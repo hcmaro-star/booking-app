@@ -1,32 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 
-const KEY = "reservations";
 export const revalidate = 0;
-
-// Upstash SDK 반환값 → 안정적으로 문자열만 뽑는 함수
-function toJsonString(raw: any): string {
-  if (!raw) return "[]";
-
-  if (typeof raw === "string") return raw;
-
-  if (typeof raw === "object" && typeof raw.result === "string") {
-    return raw.result;
-  }
-
-  if (typeof raw === "object" && typeof raw.data === "string") {
-    return raw.data;
-  }
-
-  return "[]";
-}
+const KEY = "reservations";
 
 // GET: 전체 예약 조회
 export async function GET() {
   try {
     const raw = await redis.get(KEY);
-    const json = toJsonString(raw);
-    const list = JSON.parse(json);
+
+    // Upstash Redis SDK는 string 또는 null만 반환함
+    const text = typeof raw === "string" ? raw : "[]";
+
+    const list = JSON.parse(text);
     return NextResponse.json(list);
   } catch (e: any) {
     return NextResponse.json(
@@ -36,7 +22,7 @@ export async function GET() {
   }
 }
 
-// POST: 예약 저장
+// POST: 예약 생성
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -50,8 +36,8 @@ export async function POST(req: NextRequest) {
     }
 
     const raw = await redis.get(KEY);
-    const json = toJsonString(raw);
-    const list = JSON.parse(json);
+    const text = typeof raw === "string" ? raw : "[]";
+    const list = JSON.parse(text);
 
     const newItem = {
       id: Date.now().toString(),
