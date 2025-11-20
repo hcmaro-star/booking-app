@@ -6,9 +6,9 @@ export default function AdminReservationsPage() {
   const [list, setList] = useState<any[]>([]);
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
-  const [showCancelled, setShowCancelled] = useState(false); // 취소된 예약 보기 토글
+  const [showCancelled, setShowCancelled] = useState(false);
 
-  const ADMIN_PASSWORD = "veentee1960"; // ← 여기 고객님 비밀번호로 변경
+  const ADMIN_PASSWORD = "6897; // ← 여기 고객님 비밀번호로 변경
 
   const checkPassword = () => {
     if (password === ADMIN_PASSWORD) {
@@ -42,7 +42,6 @@ export default function AdminReservationsPage() {
     if (authenticated) load();
   }, [authenticated]);
 
-  // 확정 (중복 방지)
   async function confirmReservation(id: string) {
     const targetRes = list.find((item) => item.id === id);
     if (!targetRes) return;
@@ -73,15 +72,12 @@ export default function AdminReservationsPage() {
     const result = await res.json();
     if (result.ok) {
       alert("확정 완료되었습니다!");
-      setList((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, status: "confirmed" } : item))
-      );
+      setList((prev) => prev.map((item) => (item.id === id ? { ...item, status: "confirmed" } : item)));
     } else {
       alert("확정 실패: " + result.error);
     }
   }
 
-  // 취소
   async function cancelReservation(id: string) {
     if (!confirm("정말 취소하시겠습니까?")) return;
 
@@ -94,9 +90,7 @@ export default function AdminReservationsPage() {
     const result = await res.json();
     if (result.ok) {
       alert("취소 완료되었습니다.");
-      setList((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, status: "cancelled" } : item))
-      );
+      setList((prev) => prev.map((item) => (item.id === id ? { ...item, status: "cancelled" } : item)));
     } else {
       alert("취소 실패: " + result.error);
     }
@@ -123,8 +117,10 @@ export default function AdminReservationsPage() {
 
   const cancelledCount = list.filter((i) => i.status === "cancelled").length;
 
-  // 취소된 예약 필터링 (보여줄 목록)
-  const displayedList = showCancelled ? list : list.filter((item) => item.status !== "cancelled");
+  // 취소된 예약 숨기기 로직 (이게 핵심!)
+  const displayedList = showCancelled
+    ? list
+    : list.filter((item) => item.status !== "cancelled");
 
   return (
     <div style={{ padding: 40, fontFamily: "system-ui, sans-serif", background: "#f9f9f9", minHeight: "100vh" }}>
