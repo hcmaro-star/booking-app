@@ -8,7 +8,7 @@ export default function AdminReservationsPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [showCancelled, setShowCancelled] = useState(false);
 
-  const ADMIN_PASSWORD = "6897; // ← 여기 고객님 비밀번호로 변경
+  const ADMIN_PASSWORD = "6897"; // ← 여기 고객님 비밀번호로 변경
 
   const checkPassword = () => {
     if (password === ADMIN_PASSWORD) {
