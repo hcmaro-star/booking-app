@@ -1,22 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "hcmaro@gmail.com";
 
 export const revalidate = 0;
 const KEY = "reservations";
 
-/** Upstash의 반환(raw)이
- *  - string
- *  - null
- *  - { result: "string" }
- *  - { data: "string" }
- *  어떤 형태이든 문자열을 반환하도록 통일
- */
+/** Upstash의 반환값을 문자열로 통일 */
 function toJsonString(raw: any): string {
-  if (!raw || raw === "") return "[]";  // ← 여기 "" 추가!!! 이게 핵심
+  if (!raw || raw === "") return "[]";
   if (typeof raw === "string") return raw;
   if (raw && typeof raw === "object" && typeof raw.result === "string") return raw.result;
   if (raw && typeof raw === "object" && typeof raw.data === "string") return raw.data;
-  if (Array.isArray(raw)) return JSON.stringify(raw);  // ← 만약 이미 배열로 오면 stringify
+  if (Array.isArray(raw)) return JSON.stringify(raw);
   return "[]";
 }
 
@@ -36,7 +34,7 @@ export async function GET() {
   }
 }
 
-// POST: 예약 생성
+// POST: 예약 생성 + 관리자 이메일 알림
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -57,7 +55,7 @@ export async function POST(req: NextRequest) {
       id: Date.now().toString(),
       name,
       phone,
-      guests,
+      guests: Number(guests ?? 1),
       start,
       end,
       status: "pending",
@@ -66,6 +64,40 @@ export async function POST(req: NextRequest) {
 
     list.push(newItem);
     await redis.set(KEY, JSON.stringify(list));
+
+    // ────────────────── 관리자 이메일 알림 발송 (도메인 문제 우회) ──────────────────
+    try {
+      await resend.emails.send({
+        from: "Veentee 예약알림 <hcmaro@gmail.com>",   // ← Gmail로 발송 (100% 도착 보장)
+        to: ADMIN_EMAIL,
+        subject: `🔔 새 예약 도착 | ${name}님 (${start} ~ ${end})`,
+        html: `
+          <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #f9fafb; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+            <h2 style="color: #1f2937; margin-top: 0;">새 예약이 들어왔습니다!</h2>
+            <hr style="border: 1px solid #e5e7eb; margin: 20px 0;">
+            <p style="margin: 12px 0; font-size: 16px;"><strong>이름:</strong> ${name}</p>
+            <p style="margin: 12px 0; font-size: 16px;"><strong>연락처:</strong> ${phone}</p>
+            <p style="margin: 12px 0; font-size: 16px;"><strong>인원:</strong> ${guests ?? 1}명</p>
+            <p style="margin: 12px 0; font-size: 16px;"><strong>입실:</strong> ${start}</p>
+            <p style="margin: 12px 0; font-size: 16px;"><strong>퇴실:</strong> ${end}</p>
+            <p style="margin: 12px 0; font-size: 16px; color: #6b7280;"><strong>예약 시간:</strong> ${new Date().toLocaleString("ko-KR")}</p>
+            <div style="margin-top: 30px; text-align: center;">
+              <a href="https://veentee.com/admin/reservations" 
+                 style="background: #111; color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
+                관리자 페이지 바로가기 →
+              </a>
+            </div>
+            <p style="margin-top: 30px; font-size: 14px; color: #9ca3af;">
+              Veentee.com 자동 알림입니다.
+            </p>
+          </div>
+        `,
+      });
+      console.log("예약 알림 이메일 발송 성공");
+    } catch (emailError) {
+      console.error("이메일 발송 실패 (예약은 정상 저장됨):", emailError);
+      // 이메일 실패해도 예약은 성공 처리 (중요!)
+    }
 
     return NextResponse.json({ ok: true, reservation: newItem });
   } catch (e: any) {
