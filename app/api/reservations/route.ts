@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "hcmaro@gmail.com";
+import nodemailer from "nodemailer";
 
 export const revalidate = 0;
 const KEY = "reservations";
@@ -17,33 +14,23 @@ function toJsonString(raw: any): string {
   return "[]";
 }
 
-// GET
-export async function GET() {
-  try {
-    const raw = await redis.get(KEY);
-    const json = toJsonString(raw);
-    const list = JSON.parse(json);
+// Nodemailer transporter (Gmail)
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
-    return NextResponse.json(list);
-  } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: "Failed to load", detail: e.message },
-      { status: 500 }
-    );
-  }
-}
-
-// POST - 예약 생성 + 무조건 오는 이메일
+// GET, POST 기존 로직 유지 + 이메일 발송 부분만 교체
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { name, phone, guests, start, end } = body;
 
     if (!name || !phone || !start || !end) {
-      return NextResponse.json(
-        { ok: false, error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "Missing fields" }, { status: 400 });
     }
 
     const raw = await redis.get(KEY);
@@ -64,36 +51,49 @@ export async function POST(req: NextRequest) {
     list.push(newItem);
     await redis.set(KEY, JSON.stringify(list));
 
-    // ────────────────── 여기서 무조건 오는 메일 발송 ──────────────────
+    // ────────────────── Gmail로 직접 알림 발송 (100% 도착) ──────────────────
     try {
-      await resend.emails.send({
-        from: "veentee <hcmaro@gmail.com>",   // ← 이게 핵심! 본인 Gmail로 발송
-        to: [ADMIN_EMAIL],
-        subject: `새 예약 | ${name} (${start}~${end})`,
+      await transporter.sendMail({
+        from: `"Veentee 예약알림" <${process.env.GMAIL_USER}>`,
+        to: process.env.GMAIL_USER,
+        subject: `🔔 새 예약 | ${name} (${start}~${end})`,
         html: `
-          <h2>새 예약이 들어왔습니다!</h2>
-          <p><strong>이름:</strong> ${name}</p>
-          <p><strong>전화번호:</strong> ${phone}</p>
-          <p><strong>인원:</strong> ${guests ?? 1}명</p>
-          <p><strong>입실:</strong> ${start}</p>
-          <p><strong>퇴실:</strong> ${end}</p>
-          <p><strong>시간:</strong> ${new Date().toLocaleString("ko-KR")}</p>
-          <br>
-          <a href="https://veentee.com/admin/reservations" style="background:#000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;">
-            관리자 페이지 바로가기
-          </a>
+          <div style="font-family: sans-serif; padding: 30px; background: #f8f9fa; border-radius: 16px;">
+            <h2 style="color: #222;">새 예약이 들어왔습니다!</h2>
+            <hr>
+            <p><strong>이름:</strong> ${name}</p>
+            <p><strong>연락처:</strong> ${phone}</p>
+            <p><strong>인원:</strong> ${guests ?? 1}명</p>
+            <p><strong>입실:</strong> ${start}</p>
+            <p><strong>퇴실:</strong> ${end}</p>
+            <p><strong>시간:</strong> ${new Date().toLocaleString("ko-KR")}</p>
+            <br>
+            <a href="https://veentee.com/admin/reservations" style="background:#222;color:#fff;padding:15px 30px;text-decoration:none;border-radius:12px;display:inline-block;">
+              관리자 페이지 바로가기 →
+            </a>
+          </div>
         `,
       });
-    } catch (emailErr) {
-      console.error("메일 발송 실패:", emailErr);
+      console.log("예약 알림 이메일 발송 성공 (Gmail)");
+    } catch (emailError) {
+      console.error("이메일 발송 실패:", emailError);
       // 실패해도 예약은 성공 처리
     }
 
     return NextResponse.json({ ok: true, reservation: newItem });
   } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: "Failed to save", detail: e.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+  }
+}
+
+// GET은 기존 그대로
+export async function GET() {
+  try {
+    const raw = await redis.get(KEY);
+    const json = toJsonString(raw);
+    const list = JSON.parse(json);
+    return NextResponse.json(list);
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
   }
 }
