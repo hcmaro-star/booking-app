@@ -7,7 +7,7 @@ export default function AdminReservationsPage() {
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
 
-  const ADMIN_PASSWORD = "6897"; // 고객님 비밀번호
+  const ADMIN_PASSWORD = "고객님이원하는비밀번호"; // ← 여기만 고객님 비밀번호로 변경
 
   const checkPassword = () => {
     if (password === ADMIN_PASSWORD) {
@@ -19,9 +19,7 @@ export default function AdminReservationsPage() {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("admin-auth") === "true") {
-      setAuthenticated(true);
-    }
+    if (localStorage.getItem("admin-auth") === "true") setAuthenticated(true);
   }, []);
 
   const maskPhone = (phone: string) => {
@@ -39,9 +37,27 @@ export default function AdminReservationsPage() {
     if (authenticated) load();
   }, [authenticated]);
 
-  // 확정 (즉시 반영)
+  // 확정 (중복 완벽 차단)
   async function confirmReservation(id: string) {
-    if (!confirm("정말 확정하시겠습니까?")) return;
+    const targetRes = list.find((item) => item.id === id);
+    if (!targetRes) return;
+
+    const newStart = new Date(targetRes.start);
+    const newEnd = new Date(targetRes.end);
+
+    const overlap = list.find((item) => {
+      if (item.id === id || item.status !== "confirmed") return false;
+      const existingStart = new Date(item.start);
+      const existingEnd = new Date(item.end);
+      return newStart < existingEnd && newEnd > existingStart;
+    });
+
+    if (overlap) {
+      alert(`확정 불가입니다!\n\n이미 확정된 예약과 기간이 겹칩니다.\n\n겹치는 예약:\n이름: ${overlap.name}\n전화번호: ${overlap.phone}\n기간: ${overlap.start} ~ ${overlap.end}\n\n해당 게스트에게 연락 후 조정해 주세요.`);
+      return;
+    }
+
+    if (!confirm(`${targetRes.name}님 예약을 정말 확정하시겠습니까?`)) return;
 
     const res = await fetch("/api/reservations/confirm", {
       method: "POST",
@@ -51,14 +67,16 @@ export default function AdminReservationsPage() {
 
     const result = await res.json();
     if (result.ok) {
-      alert("확정 완료되었습니다.");
-      setList((prev) => prev.map(item => item.id === id ? { ...item, status: "confirmed" } : item));
+      alert("확정 완료되었습니다!");
+      setList((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: "confirmed" } : item))
+      );
     } else {
       alert("확정 실패: " + result.error);
     }
   }
 
-  // 취소 (즉시 반영)
+  // 취소 (기존 그대로)
   async function cancelReservation(id: string) {
     if (!confirm("정말 취소하시겠습니까?")) return;
 
@@ -71,9 +89,9 @@ export default function AdminReservationsPage() {
     const result = await res.json();
     if (result.ok) {
       alert("취소 완료되었습니다.");
-      setList((prev) => prev.map(item => item.id === id ? { ...item, status: "cancelled" } : item));
-      // 또는 완전 삭제하고 싶다면 아래 줄 사용
-      // setList((prev) => prev.filter(item => item.id !== id));
+      setList((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: "cancelled" } : item))
+      );
     } else {
       alert("취소 실패: " + result.error);
     }
