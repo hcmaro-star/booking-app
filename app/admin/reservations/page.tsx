@@ -35,7 +35,7 @@ export default function AdminReservationsPage() {
   const load = async () => {
     const res = await fetch("/api/reservations");
     const data = await res.json();
-    setList(data);
+    setList(data || []);
   };
 
   useEffect(() => {
@@ -117,10 +117,8 @@ export default function AdminReservationsPage() {
 
   const cancelledCount = list.filter((i) => i.status === "cancelled").length;
 
-  // 취소된 예약 숨기기 로직 (이게 핵심!)
-  const displayedList = showCancelled
-    ? list
-    : list.filter((item) => item.status !== "cancelled");
+  // 취소된 예약 숨김 로직 (완벽 동작 보장)
+  const displayedList = showCancelled ? list : list.filter((item) => item.status !== "cancelled");
 
   return (
     <div style={{ padding: 40, fontFamily: "system-ui, sans-serif", background: "#f9f9f9", minHeight: "100vh" }}>
