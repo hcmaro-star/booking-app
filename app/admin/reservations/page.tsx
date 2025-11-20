@@ -6,8 +6,10 @@ export default function AdminReservationsPage() {
   const [list, setList] = useState<any[]>([]);
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false); // ← 취소된 예약 보기 토글
 
-  const ADMIN_PASSWORD = "고객님이원하는비밀번호"; // ← 여기만 고객님 비밀번호로 변경
+  // ← 여기만 고객님 비밀번호로 바꾸세요!
+  const ADMIN_PASSWORD = "veentee1960";
 
   const checkPassword = () => {
     if (password === ADMIN_PASSWORD) {
@@ -19,12 +21,16 @@ export default function AdminReservationsPage() {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("admin-auth") === "true") setAuthenticated(true);
+    if (localStorage.getItem("admin-auth") === "true") {
+      setAuthenticated(true);
+    }
   }, []);
 
   const maskPhone = (phone: string) => {
     const cleaned = phone.replace(/[^0-9]/g, "");
-    return cleaned.length === 11 ? `${cleaned.slice(0, 3)}****${cleaned.slice(-4)}` : phone;
+    if (cleaned.length === 11) return `${cleaned.slice(0, 3)}****${cleaned.slice(-4)}`;
+    if (cleaned.length === 10) return `${cleaned.slice(0, 3)}***${cleaned.slice(-4)}`;
+    return phone;
   };
 
   const load = async () => {
@@ -53,7 +59,7 @@ export default function AdminReservationsPage() {
     });
 
     if (overlap) {
-      alert(`확정 불가입니다!\n\n이미 확정된 예약과 기간이 겹칩니다.\n\n겹치는 예약:\n이름: ${overlap.name}\n전화번호: ${overlap.phone}\n기간: ${overlap.start} ~ ${overlap.end}\n\n해당 게스트에게 연락 후 조정해 주세요.`);
+      alert(`확정 불가입니다!\n\n이미 확정된 예약과 기간이 겹칩니다.\n\n겹치는 예약:\n이름: ${overlap.name}\n기간: ${overlap.start} ~ ${overlap.end}`);
       return;
     }
 
@@ -76,7 +82,7 @@ export default function AdminReservationsPage() {
     }
   }
 
-  // 취소 (기존 그대로)
+  // 취소
   async function cancelReservation(id: string) {
     if (!confirm("정말 취소하시겠습니까?")) return;
 
@@ -101,16 +107,44 @@ export default function AdminReservationsPage() {
     return (
       <div style={{ height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#111", color: "#fff" }}>
         <h1 style={{ fontSize: "42px", marginBottom: "50px" }}>관리자 로그인</h1>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && checkPassword()} style={{ padding: "20px", fontSize: "24px", width: "340px", borderRadius: "12px", border: "none", textAlign: "center", marginBottom: "20px" }} placeholder="비밀번호" />
-        <button onClick={checkPassword} style={{ padding: "16px 48px", fontSize: "20px", background: "#fff", color: "#000", border: "none", borderRadius: "12px" }}>로그인</button>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && checkPassword()}
+          style={{ padding: "20px", fontSize: "24px", width: "340px", borderRadius: "12px", border: "none", textAlign: "center", marginBottom: "20px" }}
+          placeholder="비밀번호"
+        />
+        <button onClick={checkPassword} style={{ padding: "16px 48px", fontSize: "20px", background: "#fff", color: "#000", border: "none", borderRadius: "12px" }}>
+          로그인
+        </button>
       </div>
     );
   }
 
+  // 취소된 예약 개수 계산
+  const cancelledCount = list.filter((i) => i.status === "cancelled").length;
+
   return (
     <div style={{ padding: 40, fontFamily: "system-ui, sans-serif", background: "#f9f9f9", minHeight: "100vh" }}>
-      <h1 style={{ fontSize: 32, fontWeight: "bold", textAlign: "center", marginBottom: 30 }}>관리자 예약 목록</h1>
-      <button onClick={() => { localStorage.removeItem("admin-auth"); setAuthenticated(false); }} style={{ position: "absolute", top: 20, right: 20, padding: "10px 20px", background: "#333", color: "#fff", border: "none", borderRadius: 8 }}>로그아웃</button>
+      <h1 style={{ fontSize: 32, fontWeight: "bold", textAlign: "center", marginBottom: 10 }}>관리자 예약 목록</h1>
+      
+      {/* 취소된 예약 보기 버튼 */}
+      <div style={{ textAlign: "center", marginBottom: 30 }}>
+        <button
+          onClick={() => setShowCancelled(!showCancelled)}
+          style={{ padding: "10px 20px", background: "#555", color: "#fff", border: "none", borderRadius: 8, fontSize: "16px" }}
+        >
+          {showCancelled ? "취소된 예약 숨기기" : `취소된 예약 보기 (${cancelledCount}건)`}
+        </button>
+      </div>
+
+      <button
+        onClick={() => { localStorage.removeItem("admin-auth"); setAuthenticated(false); }}
+        style={{ position: "absolute", top: 20, right: 20, padding: "10px 20px", background: "#333", color: "#fff", border: "none", borderRadius: 8 }}
+      >
+        로그아웃
+      </button>
 
       <table style={{ width: "100%", maxWidth: 1200, margin: "0 auto", borderCollapse: "collapse", background: "#fff", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
         <thead style={{ background: "#222", color: "#fff" }}>
@@ -125,40 +159,69 @@ export default function AdminReservationsPage() {
           </tr>
         </thead>
         <tbody>
-          {list.map((item: any) => (
-            <tr key={item.id} style={{ borderBottom: "1px solid #eee", textAlign: "center" }}>
-              <td style={{ padding: 16 }}>{item.id}</td>
-              <td style={{ padding: 16, fontWeight: "bold" }}>{item.name}</td>
-              <td style={{ padding: 16 }}>
-                <span style={{ cursor: "pointer", background: "#f0f0f0", padding: "6px 12px", borderRadius: 6 }} onClick={() => { navigator.clipboard.writeText(item.phone); alert("복사됨: " + item.phone); }}>
-                  {maskPhone(item.phone)}
-                </span>
-              </td>
-              <td style={{ padding: 16 }}>{item.guests}명</td>
-              <td style={{ padding: 16 }}>{item.start} ~ {item.end}</td>
-              <td style={{ padding: 16 }}>
-                <span style={{
-                  padding: "6px 14px", borderRadius: 20, fontWeight: "bold", fontSize: 14,
-                  background: item.status === "confirmed" ? "#d4edda" : item.status === "cancelled" ? "#f8d7da" : "#fff3cd",
-                  color: item.status === "confirmed" ? "#155724" : item.status === "cancelled" ? "#721c24" : "#856404"
-                }}>
-                  {item.status === "confirmed" ? "확정" : item.status === "cancelled" ? "취소" : "대기중"}
-                </span>
-              </td>
-              <td style={{ padding: 16 }}>
-                {item.status === "pending" && (
-                  <button onClick={() => confirmReservation(item.id)} style={{ marginRight: 8, padding: "8px 16px", background: "#28a745", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}>
-                    확정
-                  </button>
-                )}
-                {item.status !== "cancelled" && (
-                  <button onClick={() => cancelReservation(item.id)} style={{ padding: "8px 16px", background: "#dc3545", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}>
-                    취소
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
+          {list
+            .filter((item) => showCancelled || item.status !== "cancelled") // ← 핵심!
+            .map((item: any) => (
+              <tr key={item.id} style={{ borderBottom: "1px solid #eee", textAlign: "center", opacity: item.status === "cancelled" ? 0.5 : 1 }}>
+                <td style={{ padding: 16 }}>{item.id}</td>
+                <td style={{ padding: 16, fontWeight: "bold" }}>{item.name}</td>
+                <td style={{ padding: 16 }}>
+                  <span
+                    style={{ cursor: "pointer", background: "#f0f0f0", padding: "6px 12px", borderRadius: 6 }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(item.phone);
+                      alert("복사됨: " + item.phone);
+                    }}
+                  >
+                    {maskPhone(item.phone)}
+                  </span>
+                </td>
+                <td style={{ padding: 16 }}>{item.guests}명</td>
+                <td style={{ padding: 16 }}>{item.start} ~ {item.end}</td>
+                <td style={{ padding: 16 }}>
+                  <span
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: 20,
+                      fontWeight: "bold",
+                      fontSize: 14,
+                      background:
+                        item.status === "confirmed"
+                          ? "#d4edda"
+                          : item.status === "cancelled"
+                          ? "#f8d7da"
+                          : "#fff3cd",
+                      color:
+                        item.status === "confirmed"
+                          ? "#155724"
+                          : item.status === "cancelled"
+                          ? "#721c24"
+                          : "#856404",
+                    }}
+                  >
+                    {item.status === "confirmed" ? "확정" : item.status === "cancelled" ? "취소" : "대기중"}
+                  </span>
+                </td>
+                <td style={{ padding: 16 }}>
+                  {item.status === "pending" && (
+                    <button
+                      onClick={() => confirmReservation(item.id)}
+                      style={{ marginRight: 8, padding: "8px 16px", background: "#28a745", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}
+                    >
+                      확정
+                    </button>
+                  )}
+                  {item.status !== "cancelled" && (
+                    <button
+                      onClick={() => cancelReservation(item.id)}
+                      style={{ padding: "8px 16px", background: "#dc3545", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" }}
+                    >
+                      취소
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>
