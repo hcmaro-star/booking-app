@@ -7,7 +7,7 @@ export default function AdminReservationsPage() {
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
 
-  const ADMIN_PASSWORD = "veentee1960"; // 고객님 비밀번호
+  const ADMIN_PASSWORD = "6897"; // 고객님 비밀번호
 
   const checkPassword = () => {
     if (password === ADMIN_PASSWORD) {
