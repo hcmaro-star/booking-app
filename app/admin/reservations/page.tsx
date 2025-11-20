@@ -9,11 +9,11 @@ export default function AdminReservationsPage() {
   const [authenticated, setAuthenticated] = useState(false);
 
   // 필터
-  const [searchQuery, setSearchQuery] = useState(""); // 이름/전화번호 검색
+  const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(addMonths(new Date(), 1), "yyyy-MM-dd"));
 
-  const ADMIN_PASSWORD = "6897"; // ← 여기만 고객님 비밀번호로 변경
+  const ADMIN_PASSWORD = "6897"; // ← 여기 고객님 비밀번호로 변경
 
   const checkPassword = () => {
     if (password === ADMIN_PASSWORD) {
@@ -99,21 +99,22 @@ export default function AdminReservationsPage() {
     );
   }
 
-  // 필터링 로직
+  // 완벽한 검색 로직 (이름은 대소문자 구분 없이, 부분 일치, 전화번호 뒷4자리도 OK)
   const filteredList = list.filter(item => {
-    // 날짜 범위 필터
-    const inDateRange = new Date(item.start) <= new Date(endDate) && new Date(item.end) >= new Date(startDate);
+    const q = searchQuery.trim().toLowerCase();
 
-    // 검색어 있으면 과거 모든 예약 다 보여줌 (취소 포함)
-    if (searchQuery.trim() !== "") {
-      const q = searchQuery.toLowerCase();
-      const matchesName = item.name.toLowerCase().includes(q);
-      const matchesPhone = item.phone.replace(/[^0-9]/g, "").includes(q.replace(/[^0-9]/g, ""));
-      return (matchesName || matchesPhone);
+    if (q === "") {
+      // 검색 없으면 기간 내 + 취소 숨김
+      const inRange = new Date(item.start) <= new Date(endDate) && new Date(item.end) >= new Date(startDate);
+      return inRange && item.status !== "cancelled";
     }
 
-    // 검색어 없으면 기간 내 + 취소된 건 숨김
-    return inDateRange && item.status !== "cancelled";
+    // 검색 있으면 과거 모든 예약 다 보여줌
+    const matchesName = item.name.toLowerCase().includes(q);
+    const cleanedPhone = item.phone.replace(/[^0-9]/g, "");
+    const matchesPhone = cleanedPhone.includes(q.replace(/[^0-9]/g, "")) || cleanedPhone.endsWith(q.replace(/[^0-9]/g, "")); // 뒷자리 검색 강화
+
+    return matchesName || matchesPhone;
   });
 
   return (
@@ -124,7 +125,7 @@ export default function AdminReservationsPage() {
       <div style={{ maxWidth: 1200, margin: "0 auto 30px", background: "#fff", padding: 20, borderRadius: 12, boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 20 }}>
           <div>
-            <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>시작일</label>
+            <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>시작일 (과거 아무리 오래전도 OK)</label>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: 12, width: "100%", borderRadius: 8, border: "1px solid #ddd" }} />
           </div>
           <div>
@@ -133,7 +134,7 @@ export default function AdminReservationsPage() {
           </div>
           <div>
             <label style={{ fontWeight: "bold", display: "block", marginBottom: 8 }}>이름·전화번호 검색 (재방문 확인)</label>
-            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="이름 또는 전화번호" style={{ padding: 12, width: "100%", borderRadius: 8, border: "1px solid #ddd" }} />
+            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="이름 일부 또는 전화번호 뒷4자리" style={{ padding: 12, width: "100%", borderRadius: 8, border: "1px solid #ddd" }} />
           </div>
         </div>
         <p style={{ textAlign: "center", color: "#444", fontSize: 16 }}>
