@@ -141,7 +141,7 @@ export default function ReservationsPage() {
         <p style={{ fontSize: "20px", margin: "15px 0", opacity: 0.9 }}>
           네트워크: <strong style={{ color: "#00d4ff" }}>Tron (TRC20)</strong>
         </p>
- redus        <div style={{
+        <div style={{
           background: "#222",
           padding: "20px",
           borderRadius: 16,
