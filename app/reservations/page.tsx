@@ -91,7 +91,22 @@ export default function ReservationsPage() {
 
     const result = await res.json();
     if (result.ok) {
-      alert("예약이 완료되었습니다!");
+  const address = "TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT";
+  navigator.clipboard.writeText(address);
+
+  alert(
+    `예약이 접수되었습니다!\n\n` +
+    `호스트가 곧 연락드릴게요. 감사합니다\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `가상화폐 입금 안내 (10% 할인)\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `코인: USDT\n` +
+    `네트워크: Tron (TRC20)\n` +
+    `입금주소: ${address}\n\n` +
+    `주소가 자동으로 복사되었습니다!\n` +
+    `Bybit → 출금 → 붙여넣기만 하세요\n\n` +
+    `현금 입금은 호스트가 개별 안내드립니다`
+  );
       setName("");
       setPhone("");
       setGuests(1);
