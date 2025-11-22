@@ -91,22 +91,23 @@ export default function ReservationsPage() {
 
     const result = await res.json();
     if (result.ok) {
-  const address = "TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT";
-  navigator.clipboard.writeText(address);
+      const address = "TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT";
+      navigator.clipboard.writeText(address);
 
-  alert(
-    `예약이 접수되었습니다!\n\n` +
-    `호스트가 곧 연락드릴게요. 감사합니다\n\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `가상화폐 입금 안내 (10% 할인)\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `코인: USDT\n` +
-    `네트워크: Tron (TRC20)\n` +
-    `입금주소: ${address}\n\n` +
-    `주소가 자동으로 복사되었습니다!\n` +
-    `Bybit → 출금 → 붙여넣기만 하세요\n\n` +
-    `현금 입금은 호스트가 개별 안내드립니다`
-  );
+      alert(
+        `예약이 접수되었습니다!\n\n` +
+        `호스트가 곧 연락드릴게요. 정말 감사합니다\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `가상화폐 입금 안내 (10% 할인)\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `코인: USDT\n` +
+        `네트워크: Tron (TRC20)\n` +
+        `입금주소: ${address}\n\n` +
+        `주소가 자동으로 복사되었습니다!\n` +
+        `Bybit → 출금 → 붙여넣기만 하세요\n\n` +
+        `현금 입금은 호스트가 개별 안내드립니다`
+      );
+
       setName("");
       setPhone("");
       setGuests(1);
@@ -122,9 +123,65 @@ export default function ReservationsPage() {
   const maskName = (n: string) => (n.length > 2 ? n[0] + "*".repeat(n.length - 2) + n.slice(-1) : n[0] + "*");
   const maskPhone = (p: string) => p.replace(/(\d{3})\d+(\d{4})/, "$1****$2");
 
+  const walletAddress = "TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT";
+
   return (
-    <div style={{ padding: "40px", maxWidth: "600px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
-      <h1 style={{ fontSize: "42px", fontWeight: "bold", textAlign: "center", marginBottom: "40px" }}>
+    <div style={{ padding: "40px 20px", maxWidth: "800px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
+
+      {/* 가상화폐 입금 안내 박스 (항상 상단 고정) */}
+      <div style={{
+        background: "#111",
+        color: "#fff",
+        padding: "40px 30px",
+        borderRadius: 20,
+        marginBottom: "50px",
+        textAlign: "center" as const,
+        boxShadow: "0 15px 40px rgba(0,0,0,0.4)"
+      }}>
+        <h3 style={{ fontSize: "32px", margin: "0 0 25px 0", fontWeight: "bold" }}>
+          USDT 입금 시 10% 자동 할인!
+        </h3>
+        <p style={{ fontSize: "20px", margin: "15px 0", opacity: 0.9 }}>
+          네트워크: <strong style={{ color: "#00d4ff" }}>Tron (TRC20)</strong>
+        </p>
+        <div style={{
+          background: "#222",
+          padding: "20px",
+          borderRadius: 16,
+          margin: "25px 0",
+          fontSize: "24px",
+          fontFamily: "monospace",
+          wordBreak: "break-all" as const,
+          letterSpacing: "1px"
+        }}>
+          {walletAddress}
+        </div>
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(walletAddress);
+            alert("입금주소가 복사되었습니다! Bybit → 출금 → 붙여넣기 하세요");
+          }}
+          style={{
+            padding: "16px 40px",
+            fontSize: "22px",
+            background: "#00d4ff",
+            color: "#000",
+            border: "none",
+            borderRadius: 14,
+            cursor: "pointer",
+            fontWeight: "bold",
+            marginTop: "10px"
+          }}
+        >
+          주소 복사하기
+        </button>
+        <p style={{ marginTop: "25px", fontSize: "17px", opacity: 0.85, lineHeight: "1.6" }}>
+          정확한 금액 입금 시 자동 확인 후 확정 연락드립니다<br/>
+          현금 입금은 호스트가 개별 안내드릴게요
+        </p>
+      </div>
+
+      <h1 style={{ fontSize: "42px", fontWeight: "bold", textAlign: "center", margin: "40px 0" }}>
         예약하기
       </h1>
 
@@ -164,19 +221,20 @@ export default function ReservationsPage() {
       <button
         onClick={submit}
         style={{
-          padding: "20px",
-          fontSize: "24px",
-          background: "#444",
+          padding: "24px",
+          fontSize: "28px",
+          background: "#111",
           color: "#fff",
           width: "100%",
-          borderRadius: "10px",
-          marginTop: "10px",
+          borderRadius: "16px",
+          marginTop: "20px",
+          fontWeight: "bold" as const,
         }}
       >
         예약하기
       </button>
 
-      <h2 style={{ marginTop: "60px", fontSize: "36px", fontWeight: "bold", textAlign: "center" }}>
+      <h2 style={{ marginTop: "80px", fontSize: "36px", fontWeight: "bold", textAlign: "center" }}>
         예약 현황
       </h2>
 
