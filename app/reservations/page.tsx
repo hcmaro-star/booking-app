@@ -11,7 +11,6 @@ export default function ReservationsPage() {
   const [end, setEnd] = useState("");
   const [list, setList] = useState<any[]>([]);
 
-  // 스타일 정의
   const bigInput = {
     padding: "18px",
     fontSize: "20px",
@@ -29,10 +28,8 @@ export default function ReservationsPage() {
     display: "block" as const,
   };
 
-  // 확정 예약만
   const confirmed = list.filter((item) => item.status === "confirmed");
 
-  // 날짜가 예약된 범위에 있는지 확인 (퇴실일 제외)
   const isDateBlocked = (dateStr: string) => {
     if (!dateStr) return false;
     const date = new Date(dateStr);
@@ -43,7 +40,6 @@ export default function ReservationsPage() {
     });
   };
 
-  // 중복 체크
   const hasOverlap = () => {
     if (!start || !end) return false;
     const newStart = new Date(start);
@@ -55,7 +51,6 @@ export default function ReservationsPage() {
     });
   };
 
-  // 예약 목록 불러오기
   const loadReservations = async () => {
     try {
       const res = await fetch("/api/reservations");
@@ -70,7 +65,6 @@ export default function ReservationsPage() {
     loadReservations();
   }, []);
 
-  // 예약 제출
   const submit = async () => {
     if (!name || !phone || !start || !end) {
       alert("모든 항목을 입력해 주세요.");
@@ -100,6 +94,7 @@ export default function ReservationsPage() {
         `━━━━━━━━━━━━━━━━━━━━━━━\n` +
         `가상화폐 입금 안내 (10% 할인)\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `거래소: Bybit\n` +
         `코인: USDT\n` +
         `네트워크: Tron (TRC20)\n` +
         `입금주소: ${address}\n\n` +
@@ -119,7 +114,6 @@ export default function ReservationsPage() {
     }
   };
 
-  // 마스킹 함수
   const maskName = (n: string) => (n.length > 2 ? n[0] + "*".repeat(n.length - 2) + n.slice(-1) : n[0] + "*");
   const maskPhone = (p: string) => p.replace(/(\d{3})\d+(\d{4})/, "$1****$2");
 
@@ -128,7 +122,7 @@ export default function ReservationsPage() {
   return (
     <div style={{ padding: "40px 20px", maxWidth: "800px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
 
-      {/* 가상화폐 입금 안내 박스 (항상 상단 고정) */}
+      {/* 가상화폐 입금 안내 박스 - 거래소 추가, 자동할인 → 할인 */}
       <div style={{
         background: "#111",
         color: "#fff",
@@ -139,12 +133,15 @@ export default function ReservationsPage() {
         boxShadow: "0 15px 40px rgba(0,0,0,0.4)"
       }}>
         <h3 style={{ fontSize: "32px", margin: "0 0 25px 0", fontWeight: "bold" }}>
-          USDT 입금 시 10% 자동 할인!
+          USDT 입금 시 10% 할인!
         </h3>
+        <p style={{ fontSize: "20px", margin: "15px 0", opacity: 0.9 }}>
+          거래소: <strong style={{ color: "#00d4ff" }}>Bybit</strong>
+        </p>
         <p style={{ fontSize: "20px", margin: "15px 0", opacity: 0.9 }}>
           네트워크: <strong style={{ color: "#00d4ff" }}>Tron (TRC20)</strong>
         </p>
-        <div style={{
+ redus        <div style={{
           background: "#222",
           padding: "20px",
           borderRadius: 16,
