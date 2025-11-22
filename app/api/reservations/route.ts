@@ -86,13 +86,28 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET은 기존 그대로
+// GET: 지난 예약 자동 삭제 (퇴실일 지난 건 안 보임)
 export async function GET() {
   try {
     const raw = await redis.get(KEY);
     const json = toJsonString(raw);
-    const list = JSON.parse(json);
-    return NextResponse.json(list);
+    let list = JSON.parse(json);
+
+    // 오늘 날짜 (시간은 00:00:00으로 고정)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 퇴실일(end)이 오늘이나 오늘보다 이전인 예약은 제거
+    const filteredList = list.filter((item: any) => {
+      const checkoutDate = new Date(item.end);
+      checkoutDate.setHours(0, 0, 0, 0);
+      return checkoutDate >= today; // 오늘 포함 이후만 남김
+    });
+
+    // 선택사항: 실제 Redis에도 정리된 데이터 저장 (완전 삭제 원하면 주석 해제)
+    // await redis.set(KEY, JSON.stringify(filteredList));
+
+    return NextResponse.json(filteredList);
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
   }
