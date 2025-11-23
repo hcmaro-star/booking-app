@@ -18,22 +18,24 @@ export default function Intro() {
         여행을 아는 진정한 자유인의 쉼터입니다.
       </p>
 
-      {/* 이용안내 박스 추가 */}
+      {/* 이용안내 박스 - 고객님 최신 요청 정확 반영 */}
       <div style={{ margin: "80px 0", padding: 40, background: "#f0f0f0", borderRadius: 20 }}>
         <h2 style={{ fontSize: "32px", marginBottom: 30 }}>이용안내</h2>
-        <ul style={{ textAlign: "left", lineHeight: "2.2", fontSize: "18px" }}>
+        <ul style={{ textAlign: "left", lineHeight: "2.4", fontSize: "19px" }}>
           <li>입실 15:00 ~ 퇴실 12:00</li>
           <li>1인 기준 85,000원 (추가 인원 1인당 35,000원)</li>
           <li>평일 · 주말 · 공휴일 요금 동일</li>
           <li>3박 이상 10% 할인 · 5박 이상 20% 할인</li>
-          <li>가상화폐(USDT, USDC) 결제 시 10% 할인 (중복 적용 가능)</li>
+          <li>
+            가상화폐(USDT), PayPal 결제, 현금 원화 입금(계좌 개별 전달)
+          </li>
           <li>반려동물 동반 불가</li>
           <li>불멍 가능</li>
           <li>주차 숙소 주변 어디나 가능</li>
         </ul>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 30 }}>
+      <div style={{ marginTop: 80, display: "flex", flexDirection: "column", alignItems: "center", gap: 30 }}>
         <Link href="/reservations">
           <button style={{ width: 360, padding: "24px", fontSize: "26px", background: "#111", color: "#fff", border: "none", borderRadius: 16 }}>
             예약 남기기

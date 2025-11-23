@@ -85,22 +85,22 @@ export default function ReservationsPage() {
 
     const result = await res.json();
     if (result.ok) {
-      const address = "TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT";
-      navigator.clipboard.writeText(address);
-
       alert(
         `예약이 접수되었습니다!\n\n` +
         `호스트가 곧 연락드릴게요. 정말 감사합니다\n\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `가상화폐 입금 안내 (10% 할인)\n` +
+        `입금 안내\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `거래소: Bybit\n` +
-        `코인: USDT\n` +
-        `네트워크: Tron (TRC20)\n` +
-        `입금주소: ${address}\n\n` +
-        `주소가 자동으로 복사되었습니다!\n` +
-        `Bybit → 출금 → 붙여넣기만 하세요\n\n` +
-        `현금 입금은 호스트가 개별 안내드립니다`
+        `아래 두 가지 방법 중 편한 것으로 입금해 주세요\n\n` +
+        `1. 가상화폐 (USDT)\n` +
+        `   거래소: Bybit\n` +
+        `   네트워크: Tron (TRC20)\n` +
+        `   주소: TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT\n\n` +
+        `2. PayPal (가장 쉬움)\n` +
+        `   이메일: hcmaro@gmail.com\n` +
+        `   전화번호: +821089941584\n\n` +
+        `입금 완료 후 호스트가 바로 확인해 드립니다\n` +
+        `현금 입금은 개별 안내드릴게요`
       );
 
       setName("");
@@ -117,12 +117,10 @@ export default function ReservationsPage() {
   const maskName = (n: string) => (n.length > 2 ? n[0] + "*".repeat(n.length - 2) + n.slice(-1) : n[0] + "*");
   const maskPhone = (p: string) => p.replace(/(\d{3})\d+(\d{4})/, "$1****$2");
 
-  const walletAddress = "TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT";
-
   return (
     <div style={{ padding: "40px 20px", maxWidth: "800px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
 
-      {/* 가상화폐 입금 안내 박스 - 거래소 추가, 자동할인 → 할인 */}
+      {/* 입금 안내 박스 - 할인 문구 삭제, PayPal 추가 */}
       <div style={{
         background: "#111",
         color: "#fff",
@@ -133,51 +131,68 @@ export default function ReservationsPage() {
         boxShadow: "0 15px 40px rgba(0,0,0,0.4)"
       }}>
         <h3 style={{ fontSize: "32px", margin: "0 0 25px 0", fontWeight: "bold" }}>
-          USDT 입금 시 10% 할인!
+          입금 안내
         </h3>
-        <p style={{ fontSize: "20px", margin: "15px 0", opacity: 0.9 }}>
+        <p style={{ fontSize: "19px", margin: "20px 0", opacity: 0.9 }}>
+          아래 두 가지 방법 중 편하신 것으로 입금해 주세요
+        </p>
+
+        {/* USDT */}
+        <p style={{ fontSize: "20px", margin: "20px 0 10px" }}>
+          가상화폐 (USDT)
+        </p>
+        <p style={{ fontSize: "19px", margin: "8px 0", opacity: 0.9 }}>
           거래소: <strong style={{ color: "#00d4ff" }}>Bybit</strong>
         </p>
-        <p style={{ fontSize: "20px", margin: "15px 0", opacity: 0.9 }}>
+        <p style={{ fontSize: "19px", margin: "8px 0", opacity: 0.9 }}>
           네트워크: <strong style={{ color: "#00d4ff" }}>Tron (TRC20)</strong>
         </p>
         <div style={{
-          background: "#222",
-          padding: "20px",
-          borderRadius: 16,
-          margin: "25px 0",
-          fontSize: "24px",
-          fontFamily: "monospace",
-          wordBreak: "break-all" as const,
-          letterSpacing: "1px"
+          background: "#222", padding: "20px", borderRadius: 16, margin: "20px 0",
+          fontSize: "22px", fontFamily: "monospace", wordBreak: "break-all" as const
         }}>
-          {walletAddress}
+          TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT
         </div>
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(walletAddress);
-            alert("입금주소가 복사되었습니다! Bybit → 출금 → 붙여넣기 하세요");
-          }}
-          style={{
-            padding: "16px 40px",
-            fontSize: "22px",
-            background: "#00d4ff",
-            color: "#000",
-            border: "none",
-            borderRadius: 14,
-            cursor: "pointer",
-            fontWeight: "bold",
-            marginTop: "10px"
-          }}
-        >
-          주소 복사하기
-        </button>
+
+        {/* PayPal */}
+        <p style={{ fontSize: "20px", margin: "30px 0 10px" }}>
+          PayPal (가장 쉬움)
+        </p>
+        <div style={{
+          background: "#222", padding: "20px", borderRadius: 16, margin: "15px 0",
+          fontSize: "22px", fontFamily: "monospace"
+        }}>
+          hcmaro@gmail.com
+        </div>
+        <div style={{
+          background: "#222", padding: "20px", borderRadius: 16, margin: "15px 0",
+          fontSize: "22px", fontFamily: "monospace"
+        }}>
+          +821089941584
+        </div>
+
+        <div style={{ display: "flex", gap: 15, justifyContent: "center", marginTop: 25 }}>
+          <button onClick={() => { navigator.clipboard.writeText("TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT"); alert("USDT 주소 복사 완료!"); }}
+            style={{ padding: "14px 24px", background: "#00d4ff", color: "#000", border: "none", borderRadius: 12, fontWeight: "bold" }}>
+            USDT 주소 복사
+          </button>
+          <button onClick={() => { navigator.clipboard.writeText("hcmaro@gmail.com"); alert("PayPal 이메일 복사 완료!"); }}
+            style={{ padding: "14px 24px", background: "#ffc107", color: "#000", border: "none", borderRadius: 12, fontWeight: "bold" }}>
+            PayPal 이메일 복사
+          </button>
+          <button onClick={() => { navigator.clipboard.writeText("+821089941584"); alert("PayPal 전화번호 복사 완료!"); }}
+            style={{ padding: "14px 24px", background: "#28a745", color: "#fff", border: "none", borderRadius: 12, fontWeight: "bold" }}>
+            전화번호 복사
+          </button>
+        </div>
+
         <p style={{ marginTop: "25px", fontSize: "17px", opacity: 0.85, lineHeight: "1.6" }}>
-          정확한 금액 입금 시 자동 확인 후 확정 연락드립니다<br/>
+          입금 완료 후 호스트가 바로 확인 후 확정 연락드립니다<br/>
           현금 입금은 호스트가 개별 안내드릴게요
         </p>
       </div>
 
+      {/* 나머지 예약 폼은 그대로 */}
       <h1 style={{ fontSize: "42px", fontWeight: "bold", textAlign: "center", margin: "40px 0" }}>
         예약하기
       </h1>
@@ -231,6 +246,7 @@ export default function ReservationsPage() {
         예약하기
       </button>
 
+      {/* 예약 현황은 기존 그대로 */}
       <h2 style={{ marginTop: "80px", fontSize: "36px", fontWeight: "bold", textAlign: "center" }}>
         예약 현황
       </h2>
