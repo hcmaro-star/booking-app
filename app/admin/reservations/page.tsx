@@ -160,7 +160,7 @@ export default function AdminReservationsPage() {
           </tr>
         </thead>
         <tbody>
-          {filteredList.map((item: any) => (
+          {list.map((item: any) => (
             <tr key={item.id} style={{ borderBottom: "1px solid #eee", textAlign: "center", opacity: item.status === "cancelled" ? 0.5 : 1 }}>
               <td style={{ padding: 16 }}>{item.id}</td>
               <td style={{ padding: 16, fontWeight: "bold" }}>{item.name}</td>
