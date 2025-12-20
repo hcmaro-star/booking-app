@@ -21,7 +21,8 @@ const existingPhotos = [
   "/photo15.jpg",
   "/photo16.jpg",
   "/photo17.jpg",
-  // photo18.jpg 없으면 여기까지! (공란 안 생김)
+  "/photo18.jpg",
+  // photo19.jpg 없으면 여기까지! (공란 안 생김)
 ];
 
 export default function Photos() {
