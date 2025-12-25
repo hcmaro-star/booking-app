@@ -95,6 +95,7 @@ export default function ReservationsPage() {
         `1. 가상화폐 (USDT)\n` +
         `   거래소: Bybit\n` +
         `   네트워크: Tron (TRC20)\n` +
+        `   수신자: 조 준범\n` +
         `   주소: TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT\n\n` +
         `2. PayPal (가장 쉬움)\n` +
         `   이메일: hcmaro@gmail.com\n` +
@@ -120,7 +121,7 @@ export default function ReservationsPage() {
   return (
     <div style={{ padding: "40px 20px", maxWidth: "800px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
 
-      {/* 입금 안내 박스 - 할인 문구 삭제, PayPal 추가 */}
+      {/* 입금 안내 박스 - '수신자 : 조 준범' 추가 */}
       <div style={{
         background: "#111",
         color: "#fff",
@@ -146,6 +147,9 @@ export default function ReservationsPage() {
         </p>
         <p style={{ fontSize: "19px", margin: "8px 0", opacity: 0.9 }}>
           네트워크: <strong style={{ color: "#00d4ff" }}>Tron (TRC20)</strong>
+        </p>
+        <p style={{ fontSize: "19px", margin: "8px 0", opacity: 0.9 }}>
+          수신자: <strong style={{ color: "#00d4ff" }}>조 준범</strong>
         </p>
         <div style={{
           background: "#222", padding: "20px", borderRadius: 16, margin: "20px 0",
@@ -192,7 +196,6 @@ export default function ReservationsPage() {
         </p>
       </div>
 
-      {/* 나머지 예약 폼은 그대로 */}
       <h1 style={{ fontSize: "42px", fontWeight: "bold", textAlign: "center", margin: "40px 0" }}>
         예약하기
       </h1>
@@ -246,7 +249,6 @@ export default function ReservationsPage() {
         예약하기
       </button>
 
-      {/* 예약 현황은 기존 그대로 */}
       <h2 style={{ marginTop: "80px", fontSize: "36px", fontWeight: "bold", textAlign: "center" }}>
         예약 현황
       </h2>
@@ -269,7 +271,7 @@ export default function ReservationsPage() {
           >
             <div>이름: {maskName(v.name)}</div>
             <div>전화번호: {maskPhone(v.phone)}</div>
-            <div>인원: {v.guests}</div>
+            <div>인원: {v.guests}명</div>
             <div>날짜: {v.start} ~ {v.end}</div>
           </div>
         ))
