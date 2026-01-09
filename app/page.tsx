@@ -5,7 +5,19 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", background: "#fff", padding: "20px 10px" }}>
-      {/* main0 - 가장 위에 새 사진 추가 */}
+      {/* main4 - CI 로고 가장 위에 */}
+      <div style={{ maxWidth: 800, margin: "0 auto 40px" }}>
+        <Image
+          src="/main4.jpg"
+          width={1200}
+          height={800}
+          alt="Veentee CI"
+          style={{ width: "100%", height: "auto", borderRadius: 24, boxShadow: "0 10px 30px rgba(0,0,0,0.15)" }}
+          priority
+        />
+      </div>
+
+      {/* main0 - CI 아래 첫 번째 사진 */}
       <div style={{ maxWidth: 800, margin: "0 auto 40px" }}>
         <Image
           src="/main0.jpg"
@@ -17,7 +29,7 @@ export default function Home() {
         />
       </div>
 
-      {/* main1 - 절반 크기, 선명하게 */}
+      {/* main1 - main0 아래 */}
       <div style={{ maxWidth: 800, margin: "0 auto 40px" }}>
         <Image
           src="/main1.jpg"
@@ -29,7 +41,7 @@ export default function Home() {
         />
       </div>
 
-      {/* main2, main3 - 병렬 배치, 각각 main1의 약 45%, 간격 있음 */}
+      {/* main2, main3 - 병렬 배치 그대로 */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px", maxWidth: 1200, margin: "0 auto 80px" }}>
         <Image
           src="/main2.jpg"
