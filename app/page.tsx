@@ -5,13 +5,25 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", background: "#fff", padding: "20px 10px" }}>
+      {/* main0 - 가장 위에 새 사진 추가 */}
+      <div style={{ maxWidth: 800, margin: "0 auto 40px" }}>
+        <Image
+          src="/main0.jpg"
+          width={1200}
+          height={800}
+          alt="Veentee 메인0"
+          style={{ width: "100%", height: "auto", borderRadius: 24, boxShadow: "0 10px 30px rgba(0,0,0,0.15)" }}
+          priority
+        />
+      </div>
+
       {/* main1 - 절반 크기, 선명하게 */}
       <div style={{ maxWidth: 800, margin: "0 auto 40px" }}>
         <Image
           src="/main1.jpg"
           width={1200}
           height={800}
-          alt="Veentee 메인"
+          alt="Veentee 메인1"
           style={{ width: "100%", height: "auto", borderRadius: 24, boxShadow: "0 10px 30px rgba(0,0,0,0.15)" }}
           priority
         />
