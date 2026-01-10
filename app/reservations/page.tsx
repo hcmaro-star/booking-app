@@ -91,6 +91,7 @@ export default function ReservationsPage() {
         `━━━━━━━━━━━━━━━━━━━━━━━\n` +
         `입금 안내\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `숙박료 : 1인 기본 85,000원, 추가 1명당 35,000원\n\n` +
         `아래 두 가지 방법 중 편한 것으로 입금해 주세요\n\n` +
         `1. 가상화폐 (USDT)\n` +
         `   거래소: Bybit\n` +
@@ -121,7 +122,7 @@ export default function ReservationsPage() {
   return (
     <div style={{ padding: "40px 20px", maxWidth: "800px", margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
 
-      {/* 입금 안내 박스 - '수신자 : 조 준범' 추가 */}
+      {/* 입금 안내 박스 - 숙박료 안내 추가 */}
       <div style={{
         background: "#111",
         color: "#fff",
@@ -134,6 +135,9 @@ export default function ReservationsPage() {
         <h3 style={{ fontSize: "32px", margin: "0 0 25px 0", fontWeight: "bold" }}>
           입금 안내
         </h3>
+        <p style={{ fontSize: "20px", margin: "15px 0", fontWeight: "bold" }}>
+          숙박료 : 1인 기본 85,000원, 추가 1명당 35,000원
+        </p>
         <p style={{ fontSize: "19px", margin: "20px 0", opacity: 0.9 }}>
           아래 두 가지 방법 중 편하신 것으로 입금해 주세요
         </p>
@@ -196,6 +200,7 @@ export default function ReservationsPage() {
         </p>
       </div>
 
+      {/* 나머지 예약 폼 및 현황은 그대로 */}
       <h1 style={{ fontSize: "42px", fontWeight: "bold", textAlign: "center", margin: "40px 0" }}>
         예약하기
       </h1>
