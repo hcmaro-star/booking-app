@@ -85,27 +85,25 @@ export default function ReservationsPage() {
 
     const result = await res.json();
     if (result.ok) {
-      alert(
-       예약이 접수되었습니다!\n\n` +
-  `호스트가 곧 카카오톡으로 연락드릴게요. 정말 감사합니다!\n\n` +
-  `카카오톡 채널 추가 후 대기해 주세요:\n` +
-  `채널 URL: http://pf.kakao.com/_bqxexon\n` +
-  `채팅 바로가기: http://pf.kakao.com/_bqxexon/chat\n\n` +
-  `━━━━━━━━━━━━━━━━━━━━━━━\n` +
-  `입금 안내\n` +
-  `━━━━━━━━━━━━━━━━━━━━━━━\n` +
-  `숙박료 : 1인 기본 85,000원, 추가 1명당 35,000원\n\n` +
-  `아래 두 가지 방법 중 편한 것으로 입금해 주세요\n\n` +
-  `1. 가상화폐 (USDT)\n` +
-  `   거래소: Bybit\n` +
-  `   네트워크: Tron (TRC20)\n` +
-  `   수신자: 조 준범\n` +
-  `   주소: TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT\n\n` +
-  `2. PayPal (가장 쉬움)\n` +
-  `   이메일: hcmaro@gmail.com\n` +
-  `입금 완료 후 호스트가 카카오톡으로 확인해 드립니다\n` +
-  `현금 입금은 개별 안내드릴게요`
-      );
+    alert(`예약이 접수되었습니다!\n\n` +
+`호스트가 곧 카카오톡으로 연락드릴게요. 정말 감사합니다!\n\n` +
+`카카오톡 채널 추가 후 대기해 주세요:\n` +
+`채널 URL: http://pf.kakao.com/_bqxexon\n` +
+`채팅 바로가기: http://pf.kakao.com/_bqxexon/chat\n\n` +
+`━━━━━━━━━━━━━━━━━━━━━━━\n` +
+`입금 안내\n` +
+`━━━━━━━━━━━━━━━━━━━━━━━\n` +
+`숙박료 : 1인 기본 85,000원, 추가 1명당 35,000원\n\n` +
+`아래 두 가지 방법 중 편한 것으로 입금해 주세요\n\n` +
+`1. 가상화폐 (USDT)\n` +
+`   거래소: Bybit\n` +
+`   네트워크: Tron (TRC20)\n` +
+`   수신자: 조 준범\n` +
+`   주소: TRzigoYVjcNA9V77LqcvzttLx7gSeFimsT\n\n` +
+`2. PayPal (가장 쉬움)\n` +
+`   이메일: hcmaro@gmail.com\n\n` +
+`입금 완료 후 호스트가 카카오톡으로 확인해 드립니다\n` +
+`현금 입금은 개별 안내드릴게요`);  
 
       setName("");
       setPhone("");
