@@ -85,7 +85,7 @@ export default function ReservationsPage() {
 
     const result = await res.json();
     if (result.ok) {
-   alert(`
+  alert(`
 예약이 접수되었습니다!
 
 호스트가 곧 카카오톡으로 연락드릴게요. 정말 감사합니다!
