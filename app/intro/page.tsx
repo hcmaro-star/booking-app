@@ -1,54 +1,88 @@
-// app/intro/page.tsx
-import Link from "next/link";
+"use client";
 
-export default function Intro() {
+import React from "react";
+
+export default function IntroPage() {
   return (
-    <div style={{ padding: "80px 20px", maxWidth: 900, margin: "0 auto", textAlign: "center", lineHeight: "2.1", fontSize: "19px", color: "#333", background: "#fff", minHeight: "100vh" }}>
-      <h1 style={{ fontSize: "44px", marginBottom: 60 }}>숙소 소개</h1>
-      <p style={{ whiteSpace: "pre-line", textAlign: "left" }}>
-        저희 숙소 콘셉트는 '약간의 불편함은 추억을 남긴다'입니다.
-        하루종일 햇빛을 받을 수 있는 툇마루, 비전문적이지만 친근하고 독특한 실내 인테리어, 
-        마음껏 불놀이 할 수 있는 마당.
-        정리되지 않은 듯 정리된, 불편할 것 같은데 너무 맘편한 숙소, 
-        군청 100미터 반경에 있지만, 시골 외가에 온 것 같은 분위기. 풀, 텃밭, 벌레...
-        정남향의 집이라 툇마루에선 따뜻한 햇살을, 
-        방문 닫은 방안에선 밝지도 어둡지도 않은 부드러운 색감을 마주하게 됩니다.
-        실내조명 또한 과다하지 않고, 음악과 차 한잔에만 집중할 수 있도록 달았습니다.
-        제 아지트는 준비마저 귀찮지만 쉼이 필요한, 
-        여행을 아는 진정한 자유인의 쉼터입니다.
-      </p>
+    <div style={{ 
+      padding: "80px 20px", 
+      maxWidth: "800px", 
+      margin: "0 auto", 
+      fontFamily: "system-ui, sans-serif", 
+      color: "#111",
+      lineHeight: "1.6"
+    }}>
+      
+      {/* 헤더 섹션 */}
+      <header style={{ textAlign: "center", marginBottom: "100px" }}>
+        <h1 style={{ fontSize: "72px", fontWeight: "bold", marginBottom: "20px", letterSpacing: "-3px" }}>
+          Veentee
+        </h1>
+        <div style={{ width: "40px", height: "2px", background: "#111", margin: "0 auto 30px" }}></div>
+        <p style={{ fontSize: "24px", color: "#444", fontWeight: "300" }}>
+          쉼과 영감이 공존하는 우리만의 공간
+        </div>
+      </header>
 
-    {/* 이용안내 박스 - 숙박료 내용 추가 */}
-      <div style={{ margin: "80px 0", padding: 40, background: "#f0f0f0", borderRadius: 20 }}>
-        <h2 style={{ fontSize: "32px", marginBottom: 30 }}>이용안내</h2>
-        <ul style={{ textAlign: "left", lineHeight: "2.4", fontSize: "19px" }}>
-          <li>주소 : 곡성군 곡성읍 읍내7길 7 (곡성읍 읍내리 764-1)</li>
-          <li>입실 15:00 ~ 퇴실 12:00</li>
-          <li>숙박료 : 1인 기본 85,000원, 추가 1명당 35,000원</li>
-          <li>평일 · 주말 · 공휴일 요금 동일</li>
-          <li>3박 이상 10% 할인 · 5박 이상 20% 할인</li>
-          <li>가상화폐(USDT), PayPal 결제, 현금 원화 입금(계좌 개별 전달)</li>
-          <li>기본 양념 모두 구비되어 있으나, 장류와 참기름은 없습니다.</li>
-          <li>장작은 숙소 주변 마트에서 구매하시면 됩니다.</li>
-          <li>곡성에서 가장 큰 마트는 '축협하나로마트(사랑병원 맞은편)'입니다.</li>
-          <li>반려동물 동반 불가</li>
-          <li>불멍 가능</li>
-          <li>주차 숙소 주변 어디나 가능</li>
-        </ul>
-      </div>
+      {/* 숙소 소개 섹션 (이용안내 삭제됨) */}
+      <section style={{ marginBottom: "120px", textAlign: "center" }}>
+        <h2 style={{ fontSize: "32px", fontWeight: "bold", marginBottom: "40px" }}>About Space</h2>
+        <p style={{ fontSize: "19px", color: "#555", marginBottom: "20px" }}>
+          빈티는 바쁜 일상에서 벗어나 온전한 휴식을 취할 수 있도록 설계된 공간입니다.
+        </p>
+        <p style={{ fontSize: "19px", color: "#555" }}>
+          자연스러운 질감과 따뜻한 조명 아래에서 당신만의 시간을 가져보세요.
+        </p>
+      </section>
 
-      <div style={{ marginTop: 80, display: "flex", flexDirection: "column", alignItems: "center", gap: 30 }}>
-        <Link href="/reservations">
-          <button style={{ width: 360, padding: "24px", fontSize: "26px", background: "#111", color: "#fff", border: "none", borderRadius: 16 }}>
-            예약 남기기
-          </button>
-        </Link>
-        <Link href="/reviews">
-          <button style={{ width: 360, padding: "24px", fontSize: "26px", background: "#333", color: "#fff", border: "none", borderRadius: 16 }}>
-            게스트 리뷰 보기
-          </button>
-        </Link>
-      </div>
+      {/* 푸터 및 이메일 섹션 (맨 밑으로 이동) */}
+      <footer style={{ 
+        marginTop: "150px", 
+        paddingTop: "60px", 
+        borderTop: "1px solid #eee", 
+        textAlign: "center" 
+      }}>
+        <h3 style={{ fontSize: "24px", marginBottom: "20px", fontWeight: "bold" }}>Contact</h3>
+        <p style={{ fontSize: "18px", color: "#666", marginBottom: "30px" }}>
+          모든 문의사항은 이메일로 보내주시면 확인 후 답변드리겠습니다.
+        </p>
+        
+        <div style={{ 
+          display: "inline-block",
+          padding: "20px 40px", 
+          background: "#111", 
+          color: "#fff",
+          borderRadius: "50px",
+          fontSize: "22px",
+          fontWeight: "bold",
+          cursor: "default"
+        }}>
+          📧 hcmaro@gmail.com
+        </div>
+
+        <button 
+          onClick={() => {
+            navigator.clipboard.writeText("hcmaro@gmail.com");
+            alert("이메일 주소가 복사되었습니다.");
+          }}
+          style={{
+            display: "block",
+            margin: "20px auto 0",
+            background: "none",
+            border: "none",
+            color: "#0070f3",
+            cursor: "pointer",
+            fontSize: "15px",
+            textDecoration: "underline"
+          }}
+        >
+          주소 복사하기
+        </button>
+
+        <p style={{ marginTop: "80px", color: "#ccc", fontSize: "13px", letterSpacing: "2px" }}>
+          © 2026 VEENTEE. ALL RIGHTS RESERVED.
+        </p>
+      </footer>
     </div>
   );
 }
